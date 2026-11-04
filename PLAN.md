@@ -53,11 +53,11 @@ Cada integrante tiene: un recurso con CRUD, un caso de uso complejo, sus tests (
 
 | # | Tarea | Desbloquea a | Estado |
 | --- | --- | --- | --- |
-| 1.1 | Esqueleto `server/`: Express, `config.js`, `.env.example`, ruta `/api/health` | 2, 3 | Pendiente |
-| 1.2 | Middlewares de errores y 404 | 2, 3 | Pendiente |
-| 1.3 | Conexion Supabase + Factory + DAO de canchas (MEM y SUPABASE) | 2, 3 | Pendiente |
-| 1.4 | Middleware de auth: valida token de Supabase y rol `admin` | 2, 3 | Pendiente |
-| 1.5 | Setup de tests (mocha) | 2, 3 | Pendiente |
+| 1.1 | Esqueleto `server/`: Express, `config.js`, `.env.example`, ruta `/api/health` | 2, 3 | Hecho |
+| 1.2 | Middlewares de errores y 404 | 2, 3 | Hecho |
+| 1.3 | Conexion Supabase + Factory + DAO de canchas (MEM y SUPABASE) | 2, 3 | Hecho |
+| 1.4 | Middleware de auth: valida token de Supabase y rol `admin` | 2, 3 | Hecho |
+| 1.5 | Setup de tests (mocha) | 2, 3 | Hecho |
 | 1.6 | Recurso **canchas** CRUD (`/api/canchas`) con Joi + tests | 2 (disponibilidad) | Pendiente |
 | 1.7 | **CU complejo 1 - Importador de canchas**: `POST /api/canchas/importar` recibe CSV/JSON, valida fila por fila, da de alta las validas y devuelve `{ importadas, rechazadas: [{ fila, motivo }] }` | - | Pendiente |
 | 1.8 | Docs de canchas + importador, diagrama de clases general, secuencia del importador | - | Pendiente |
