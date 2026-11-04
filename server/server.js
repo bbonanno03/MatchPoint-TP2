@@ -1,4 +1,5 @@
 import express from 'express'
+import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
 
 
 class Server {
@@ -21,6 +22,13 @@ class Server {
         app.get('/api/health', (req, res) => {
             res.json({ estado: 'ok' })
         })
+
+        /* --------------------------------- */
+        /*        404 y manejo de errores    */
+        /* --------------------------------- */
+        // Van al final: solo se ejecutan si ninguna ruta anterior respondio
+        app.use(rutaNoEncontrada)
+        app.use(manejarErrores)
 
         // Devolvemos una promesa para poder esperar a que el servidor escuche (lo usan los tests)
         return new Promise((resolve, reject) => {
