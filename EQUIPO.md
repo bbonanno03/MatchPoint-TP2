@@ -55,7 +55,7 @@ Prueba rápida: abrir http://localhost:8080/api/health → `{ "estado": "ok" }`.
 
 Cada uno tiene un recurso con su CRUD, un caso de uso complejo, sus tests, su documentación y su diagrama de secuencia.
 
-### Integrante 1 - Bruno
+### Integrante 1 - Bruno Bonanno
 
 | # | Tarea | Estado |
 | --- | --- | --- |
@@ -68,7 +68,7 @@ Cada uno tiene un recurso con su CRUD, un caso de uso complejo, sus tests, su do
 | 1.7 | **Caso complejo 1 - Importador de canchas**: `POST /api/canchas/importar` recibe CSV/JSON, valida fila por fila, da de alta las válidas y devuelve un reporte con las rechazadas y el motivo | ⏳ Pendiente |
 | 1.8 | Docs de canchas e importador + diagrama de clases general + diagrama de secuencia del importador | ⏳ Pendiente |
 
-### Integrante 2 - [Nombre]
+### Integrante 2 - Lucas Pisati
 
 | # | Tarea | Estado |
 | --- | --- | --- |
@@ -78,7 +78,7 @@ Cada uno tiene un recurso con su CRUD, un caso de uso complejo, sus tests, su do
 | 2.4 | Tests de reservas: felices + no felices (fuera de horario, límite superado, cancelación tardía, turno ocupado) | ⏳ Pendiente |
 | 2.5 | Docs de políticas, reservas y disponibilidad + diagrama de secuencia de disponibilidad | ⏳ Pendiente |
 
-### Integrante 3 - [Nombre]
+### Integrante 3 - Ezequiel Reynoso
 
 | # | Tarea | Estado |
 | --- | --- | --- |

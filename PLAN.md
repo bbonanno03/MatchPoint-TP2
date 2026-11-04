@@ -49,7 +49,7 @@ server/
 
 Cada integrante tiene: un recurso con CRUD, un caso de uso complejo, sus tests (felices + al menos uno no feliz), su documentacion y su diagrama de secuencia. El Integrante 1 arranca primero con la base, que desbloquea al resto.
 
-### Integrante 1 - Bruno (primero)
+### Integrante 1 - Bruno Bonanno (primero)
 
 | # | Tarea | Desbloquea a | Estado |
 | --- | --- | --- | --- |
@@ -62,7 +62,7 @@ Cada integrante tiene: un recurso con CRUD, un caso de uso complejo, sus tests (
 | 1.7 | **CU complejo 1 - Importador de canchas**: `POST /api/canchas/importar` recibe CSV/JSON, valida fila por fila, da de alta las validas y devuelve `{ importadas, rechazadas: [{ fila, motivo }] }` | - | Pendiente |
 | 1.8 | Docs de canchas + importador, diagrama de clases general, secuencia del importador | - | Pendiente |
 
-### Integrante 2
+### Integrante 2 - Lucas Pisati
 
 | # | Tarea |
 | --- | --- |
@@ -72,7 +72,7 @@ Cada integrante tiene: un recurso con CRUD, un caso de uso complejo, sus tests (
 | 2.4 | Tests de reservas: felices + no felices (fuera de horario, limite superado, cancelacion tardia, turno ocupado) |
 | 2.5 | Docs de politicas/reservas/disponibilidad + secuencia de disponibilidad |
 
-### Integrante 3
+### Integrante 3 - Ezequiel Reynoso
 
 | # | Tarea |
 | --- | --- |
