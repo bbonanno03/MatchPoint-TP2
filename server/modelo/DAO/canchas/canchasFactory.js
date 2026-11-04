@@ -1,4 +1,5 @@
 import ModeloMem from './canchasMem.js'
+import ModeloSupabase from './canchasSupabase.js'
 
 
 class ModelFactory {
@@ -7,6 +8,10 @@ class ModelFactory {
             case 'MEM':
                 console.log('*** Persistiendo en Memoria (canchas) ***')
                 return new ModeloMem()
+
+            case 'SUPABASE':
+                console.log('*** Persistiendo en Supabase (canchas) ***')
+                return new ModeloSupabase()
 
             default:
                 console.log('*** Persistiendo en Memoria (default) (canchas) ***')
