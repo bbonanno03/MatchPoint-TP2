@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  /* ==========================================
+     🎨 PALETA DE COLORES (Identidad Fútbol)
+     ========================================== */
+  /* Verde Césped Principal (Tu sugerencia del 600) */
+  --color-brand: #16a34a;       /* bg-brand / text-brand */
+  --color-brand-light: #4ade80; /* Para detalles dinámicos o bordes activos */
+  --color-brand-dark: #15803d;  /* Para el efecto Hover de los botones (Green 700) */
+
+  /* Colores de Fondo y Superficies (Estructura Limpia) */
+  --color-surface-bg: #f8fafc;   /* Fondo general de la app (Gris premium ultra claro) */
+  --color-surface-card: #ffffff; /* Fondo para tarjetas de canchas, formularios y navbar */
+  --color-surface-border: #e2e8f0; /* Bordes sutiles divisorios */
+
+  /* Textos (Jerarquía de grises para que no sea todo negro puro) */
+  --color-text-main: #0f172a;    /* Títulos principales (Slate 900) */
+  --color-text-muted: #475569;   /* Subtítulos y etiquetas secundarias (Slate 600) */
+
+  /* Estados de Turnos / Reservas */
+  --color-status-success: #22c55e; /* Cancha disponible o reserva confirmada */
+  --color-status-error: #ef4444;   /* Cancha ocupada o reserva cancelada */
+
+  /* ==========================================
+     📐 TIPOGRAFÍAS Y TAMAÑOS
+     ========================================== */
+  --font-sans: "Inter", "system-ui", sans-serif; /* Para toda la app (Ultra legible) */
+  
+  /* Escala de Tamaños de Texto Estándar */
+  --text-title: 1.875rem; /* 30px - Para "Canchas Disponibles" o títulos de sección */
+  --text-card-title: 1.25rem; /* 20px - Para el nombre de la cancha */
+  --text-body: 0.938rem;  /* 15px - Para datos como Ubicación, Club, Precio */
+  --text-small: 0.75rem;  /* 12px - Para etiquetas pequeñas o estados */
+
+  /* ==========================================
+     📦 ESPACIADOS Y ROBUSTEZ (Layout)
+     ========================================== */
+  /* Redondeados de esquinas uniformes */
+  --radius-card: 1rem;    /* 16px - Para las tarjetas de las canchas */
+  --radius-btn: 0.5rem;   /* 8px - Para los botones de "Reservar" */
+
+  /* Sombras para dar profundidad */
+  --shadow-flat: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 10px 15px -3px rgba(22, 163, 74, 0.08); /* Sombra con un levísimo reflejo verde césped */
+}
+
+body {
+  @apply bg-surface-bg text-text-main font-sans antialiased;
+}
