@@ -21,6 +21,14 @@ npm test
 | `SUPABASE_URL` | URL del proyecto de Supabase | - |
 | `SUPABASE_KEY` | service_role key de Supabase (no subir al repo) | - |
 
+## Base de datos (Supabase)
+
+Los cambios a las tablas estan en `sql/`, numerados. Se ejecutan en orden desde **Supabase > SQL Editor** (se pueden correr mas de una vez):
+
+| Archivo | Que hace |
+| --- | --- |
+| `01_canchas_techada_ubicacion.sql` | Agrega a `courts` los campos `covered` (techada), `latitude` y `longitude` |
+
 ## Autenticacion
 
 Las rutas protegidas esperan el header:
