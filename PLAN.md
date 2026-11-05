@@ -22,6 +22,7 @@ Consigna: `tp_final.txt` (TP2 Trabajo Practico Final). Base: frontend de PNT2-Ma
 | Configuracion | `.env` + `config.js` (dotenv), `.env.example` versionado | Requisito "configuracion persistida en archivos"; las claves no se suben |
 | Tests | mocha + `assert` de Node; los tests HTTP levantan el servidor en modo `MEM` y usan `fetch` | Herramientas vistas en la materia, sin dependencias extra |
 | Documentacion | `server/README.md` con endpoints, ejemplos y errores | Requisito de documentacion |
+| Servicios externos | Clima: Open-Meteo (sin API key). Mails: nodemailer. Imagenes: multer + Supabase Storage. Reporte: exceljs | Son los ejemplos del profe; cada uno con Factory MEM/real para que los tests no dependan de internet |
 
 ## 3. Arquitectura del servidor (estilo de la clase 11)
 
@@ -45,66 +46,21 @@ server/
   README.md
 ```
 
-## 4. Reparto de tareas
+## 4. Reparto, dependencias y cronograma
 
-Cada integrante tiene: un recurso con CRUD, un caso de uso complejo, sus tests (felices + al menos uno no feliz), su documentacion y su diagrama de secuencia. El Integrante 1 arranca primero con la base, que desbloquea al resto.
+Estan en `EQUIPO.md`, que es la fuente unica del reparto y del estado de cada tarea.
 
-### Integrante 1 - Bruno Bonanno (primero)
+Resumen (actualizado el 2026-11-05 con lo que pidio el profe):
 
-| # | Tarea | Desbloquea a | Estado |
-| --- | --- | --- | --- |
-| 1.1 | Esqueleto `server/`: Express, `config.js`, `.env.example`, ruta `/api/health` | 2, 3 | Hecho |
-| 1.2 | Middlewares de errores y 404 | 2, 3 | Hecho |
-| 1.3 | Conexion Supabase + Factory + DAO de canchas (MEM y SUPABASE) | 2, 3 | Hecho |
-| 1.4 | Middleware de auth: valida token de Supabase y rol `admin` | 2, 3 | Hecho |
-| 1.5 | Setup de tests (mocha) | 2, 3 | Hecho |
-| 1.6 | Recurso **canchas** CRUD (`/api/canchas`) con Joi + tests | 2 (disponibilidad) | Pendiente |
-| 1.7 | **CU complejo 1 - Importador de canchas**: `POST /api/canchas/importar` recibe CSV/JSON, valida fila por fila, da de alta las validas y devuelve `{ importadas, rechazadas: [{ fila, motivo }] }` | - | Pendiente |
-| 1.8 | Docs de canchas + importador, diagrama de clases general, secuencia del importador | - | Pendiente |
+| Integrante | ABM | Casos de complejidad media/alta |
+| --- | --- | --- |
+| 1 - Bruno Bonanno | Canchas (completo) | Subida de imagenes a Supabase Storage |
+| 2 - Lucas Pisati | Reservas (parcial) + politicas | Clima para canchas al aire libre (Open-Meteo) |
+| 3 - Ezequiel Reynoso | Lista de espera (parcial) | Aviso por mail al liberarse un turno + reporte Excel |
 
-### Integrante 2 - Lucas Pisati
+Los casos del plan anterior (importador, disponibilidad, estadisticas) quedan como extras.
 
-| # | Tarea |
-| --- | --- |
-| 2.1 | Recurso **politicas** (`GET /api/politicas`, `PUT` solo admin) |
-| 2.2 | Recurso **reservas**: crear (horario de apertura, max. activas, turnos superpuestos), cancelar (horas minimas), listar propias / todas (admin) |
-| 2.3 | **CU complejo 2 - Disponibilidad**: `GET /api/canchas/:id/disponibilidad?fecha=YYYY-MM-DD` cruza politicas + reservas y devuelve los turnos libres |
-| 2.4 | Tests de reservas: felices + no felices (fuera de horario, limite superado, cancelacion tardia, turno ocupado) |
-| 2.5 | Docs de politicas/reservas/disponibilidad + secuencia de disponibilidad |
-
-### Integrante 3 - Ezequiel Reynoso
-
-| # | Tarea |
-| --- | --- |
-| 3.1 | Recurso **resenas** (calificar cancha 1-5, listar por cancha, una por reserva finalizada) |
-| 3.2 | Recurso **usuarios/perfil** (ver perfil, listar y cambiar rol - admin) |
-| 3.3 | **CU complejo 3 - Estadisticas**: `GET /api/estadisticas` con ocupacion por cancha, ingresos por mes y por deporte, horario pico, ranking de canchas por calificacion |
-| 3.4 | **Exportador**: `GET /api/reservas/exportar?desde&hasta` devuelve CSV |
-| 3.5 | Tests de estadisticas/exportador/resenas + docs + secuencia de estadisticas |
-
-### Compartido (al final)
-
-- Conectar el front a la API (opcional: no se evalua en esta materia, suma para la demo).
-- Ensayo de la presentacion oral semanal.
-
-## 5. Cronograma sugerido (entregas semanales)
-
-| Semana | Incremento visible |
-| --- | --- |
-| 1 | 1.1 a 1.5: el servidor levanta, config, auth, tests. 2 y 3 crean sus ramas |
-| 2 | 1.6, 2.1-2.2, 3.1-3.2 (CRUDs con tests) |
-| 3 | 1.7, 2.3, 3.3-3.4 (casos de uso complejos) |
-| 4 | Docs, UML, ajustes, integracion con el front |
-
-## 6. Como sumar un recurso nuevo (guia para 2 y 3)
-
-1. Copiar la carpeta `modelo/DAO/canchas/` como modelo: `<recurso>Factory.js`, `<recurso>Mem.js`, `<recurso>Supabase.js`.
-2. Crear `servicio/`, `controlador/` y `router/` del recurso siguiendo los de canchas.
-3. Registrar el router en `server.js`.
-4. Proteger rutas con `autenticar` y, si son de admin, con `soloAdmin`.
-5. Escribir los tests en `test/` usando `MODO_PERSISTENCIA=MEM`.
-
-## 7. Forma de trabajo en Git
+## 5. Forma de trabajo en Git
 
 - Una rama por tarea (`feature/2.2-reservas`, ...), PR a `main`, revision de un companero.
 - Commits chicos y descriptivos, uno por paso logico.
