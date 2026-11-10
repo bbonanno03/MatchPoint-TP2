@@ -19,6 +19,14 @@ class ModeloSupabase {
         return data
     }
 
+    obtenerEnEsperaPorTurno = async ({ court_id, reservation_date, start_time }) => {
+        const { data, error } = await this.#tabla().select('user_id, profiles(email)')
+            .eq('court_id', court_id).eq('reservation_date', reservation_date)
+            .eq('start_time', `${start_time}:00`).order('created_at').order('id')
+        if (error) throw new Error(error.message)
+        return data.map(i => ({ user_id: i.user_id, email: i.profiles?.email }))
+    }
+
     guardarInscripcion = async inscripcion => {
         const { data, error } = await this.#tabla().insert(inscripcion).select().single()
         if (error?.code === '23505') {

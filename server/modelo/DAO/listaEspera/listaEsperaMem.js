@@ -3,11 +3,13 @@ import { randomUUID } from 'node:crypto'
 class ModeloMem {
     #inscripciones = []
     #reservas
+    #usuarios
 
     // Consulta de ocupacion provisoria hasta integrar el DAO de reservas (tarea 2.2).
     // Sin datos ficticios en produccion; las pruebas pueden inyectar reservas.
-    constructor(reservas = []) {
+    constructor(reservas = [], usuarios = []) {
         this.#reservas = reservas
+        this.#usuarios = usuarios
     }
 
     obtenerReservaTurno = async ({ court_id, reservation_date, start_time }) => {
@@ -18,6 +20,12 @@ class ModeloMem {
 
     obtenerPropias = async userId => this.#inscripciones
         .filter(i => i.user_id === userId).map(i => ({ ...i }))
+
+    obtenerEnEsperaPorTurno = async ({ court_id, reservation_date, start_time }) => {
+        return this.#inscripciones.filter(i => i.court_id === court_id &&
+            i.reservation_date === reservation_date && i.start_time.slice(0, 5) === start_time)
+            .map(i => ({ user_id: i.user_id, email: this.#usuarios.find(u => u.id === i.user_id)?.email }))
+    }
 
     guardarInscripcion = async inscripcion => {
         // Sin await entre la comprobacion y el alta: protege altas simultaneas en MEM.
