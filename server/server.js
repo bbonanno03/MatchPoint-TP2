@@ -1,4 +1,5 @@
 import express from 'express'
+import RouterListaEspera from './router/listaEspera.js'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
 
 
@@ -22,6 +23,8 @@ class Server {
         app.get('/api/health', (req, res) => {
             res.json({ estado: 'ok' })
         })
+
+        app.use('/api/lista-espera', new RouterListaEspera().router)
 
         /* --------------------------------- */
         /*        404 y manejo de errores    */
