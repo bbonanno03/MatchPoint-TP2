@@ -1,5 +1,6 @@
 import express from 'express'
 import RouterListaEspera from './router/listaEspera.js'
+import RouterReportes from './router/reportes.js'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
 
 
@@ -25,6 +26,7 @@ class Server {
         })
 
         app.use('/api/lista-espera', new RouterListaEspera().router)
+        app.use('/api/reportes', new RouterReportes().router)
 
         /* --------------------------------- */
         /*        404 y manejo de errores    */
