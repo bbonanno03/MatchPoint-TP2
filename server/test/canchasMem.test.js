@@ -33,7 +33,7 @@ describe('DAO de canchas en memoria', () => {
     it('actualizarCancha modifica solo los campos enviados', async () => {
         const cancha = await modelo.actualizarCancha('1', { price: 20000 })
         assert.strictEqual(cancha.price, 20000)
-        assert.strictEqual(cancha.name, 'Cancha Padel 1')
+        assert.strictEqual(cancha.name, 'Cancha Pádel 1')
     })
 
     it('borrarCancha elimina la cancha', async () => {
