@@ -27,7 +27,7 @@ Los cambios a las tablas estan en `sql/`, numerados. Se ejecutan en orden desde 
 
 | Archivo | Que hace |
 | --- | --- |
-| `01_canchas_techada_ubicacion.sql` | Agrega a `courts` los campos `covered` (techada), `latitude` y `longitude` |
+| `002_canchas_techada_ubicacion.sql` | Agrega a `courts` los campos `covered` (techada), `latitude` y `longitude` |
 
 ## Autenticacion
 
