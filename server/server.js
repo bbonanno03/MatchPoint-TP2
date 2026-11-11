@@ -1,4 +1,5 @@
 import express from 'express'
+import RouterCanchas from './router/canchas.js'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
 
 
@@ -22,6 +23,11 @@ class Server {
         app.get('/api/health', (req, res) => {
             res.json({ estado: 'ok' })
         })
+
+        /* --------------------------------- */
+        /*          APIRest: canchas         */
+        /* --------------------------------- */
+        app.use('/api/canchas', new RouterCanchas().config())
 
         /* --------------------------------- */
         /*        404 y manejo de errores    */
