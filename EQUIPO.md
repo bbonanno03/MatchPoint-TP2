@@ -101,6 +101,10 @@ Cada uno tiene un ABM, al menos un caso complejo, sus tests, su documentación y
 
 | Tarea | Estado |
 | --- | --- |
+| Pedido del profe (11/11) - Documentar un POST de un ABM y un GET/PUT de otro: `POST /api/canchas` y `GET /api/lista-espera` | ✅ Hecho |
+| Pedido del profe (11/11) - Test end-to-end de esos 2 endpoints (`npm run test:e2e`) - Bruno | ✅ Hecho |
+| Pedido del profe (11/11) - Test unitario de una función que calcule algo. Propuesta: separar el cálculo de ocupación e ingresos del reporte y testearlo solo - Ezequiel | ⏳ Pendiente |
+| Pedido del profe (11/11) - Mostrar bien el front en la próxima clase | ⏳ Pendiente |
 | Conectar el front a la API (no se evalúa, pero suma para la demo) | ⏳ Pendiente |
 | Ensayar la presentación oral de cada semana | ⏳ Pendiente |
 
