@@ -1,3 +1,13 @@
+// Error con codigo HTTP. Los servicios lo lanzan (por ejemplo 404 si no existe la cancha)
+// y manejarErrores lo convierte en la respuesta.
+// Express 5 manda solo al middleware de errores lo que falla en un controlador async.
+export class ErrorHttp extends Error {
+    constructor(status, mensaje) {
+        super(mensaje)
+        this.status = status
+    }
+}
+
 // Se ejecuta cuando ninguna ruta coincide con la URL pedida
 export const rutaNoEncontrada = (req, res) => {
     res.status(404).json({ url: req.url, method: req.method, error: 'Ruta no encontrada' })
