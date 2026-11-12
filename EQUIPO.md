@@ -72,8 +72,8 @@ Cada uno tiene un ABM, al menos un caso complejo, sus tests, su documentación y
 | 1.3 | Conexión a Supabase + Factory + DAO de canchas (en memoria y en Supabase) | ✅ Hecho |
 | 1.4 | Middleware de auth: `autenticar` (valida el token) y `soloAdmin` (valida el rol) | ✅ Hecho |
 | 1.5 | Tests con mocha: servidor, auth y DAO de canchas (13 tests pasando) + README de la API | ✅ Hecho |
-| 1.6 | Agregar a las canchas los campos **techada** (sí/no), **latitud** y **longitud** (SQL en Supabase + DAOs). **Va primero: lo necesita el clima de Lucas** | ⏳ Pendiente |
-| 1.7 | **ABM completo de canchas**: alta, baja y modificación (solo admin) y consulta (`GET /api/canchas`, `GET /api/canchas/:id`), con filtro `?techada=true\|false&deporte=...` (el "checkbox" que pidió el profe) + validación Joi + tests | ⏳ Pendiente |
+| 1.6 | Agregar a las canchas los campos **techada** (sí/no), **latitud** y **longitud** (SQL en Supabase + DAOs). **Va primero: lo necesita el clima de Lucas** | 🔶 Código hecho; falta correr el SQL en Supabase |
+| 1.7 | **ABM completo de canchas**: alta, baja y modificación (solo admin) y consulta (`GET /api/canchas`, `GET /api/canchas/:id`), con filtro `?techada=true\|false&deporte=...` (el "checkbox" que pidió el profe) + validación Joi + tests | ✅ Hecho (31 tests) |
 | 1.8 | **Caso complejo - Subida de imágenes**: `POST /api/canchas/:id/imagen` recibe la foto, valida tipo (jpg/png/webp) y tamaño, la sube a Supabase Storage y guarda la URL en la cancha. No felices: archivo que no es imagen, muy pesado, cancha inexistente | ⏳ Pendiente |
 | 1.9 | Docs de canchas e imágenes + diagrama de clases general + diagrama de secuencia de la subida de imágenes | ⏳ Pendiente |
 

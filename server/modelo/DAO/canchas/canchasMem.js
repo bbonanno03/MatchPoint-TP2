@@ -5,8 +5,9 @@ class ModeloMem {
 
     constructor() {
         this.#canchas = [
-            { id: '1', name: 'Cancha Padel 1', sport: 'Padel', club: 'MatchPoint Club', location: 'Villa Sarmiento', price: 12000, active: true, image_url: null },
-            { id: '2', name: 'Cancha Tenis 1', sport: 'Tenis', club: 'MatchPoint Club', location: 'Villa Sarmiento', price: 15000, active: true, image_url: null },
+            // covered: true = techada, false = al aire libre (ver sql/002_canchas_techada_ubicacion.sql)
+            { id: '1', name: 'Cancha Pádel 1', sport: 'Pádel', club: 'MatchPoint Club', location: 'Villa Sarmiento', price: 12000, active: true, image_url: null, covered: true, latitude: -34.632, longitude: -58.563 },
+            { id: '2', name: 'Cancha Tenis 1', sport: 'Tenis', club: 'MatchPoint Club', location: 'Villa Sarmiento', price: 15000, active: true, image_url: null, covered: false, latitude: -34.632, longitude: -58.563 },
         ]
     }
 
