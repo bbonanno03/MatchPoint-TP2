@@ -1,5 +1,6 @@
 import express from 'express'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
+import RouterPoliticas from './router/politicas.js'
 
 
 class Server {
@@ -24,13 +25,18 @@ class Server {
         })
 
         /* --------------------------------- */
+        /*       APIRestful: politicas       */     
+        /* --------------------------------- */
+        app.use('/api/politicas', new RouterPoliticas().config())
+
+        /* --------------------------------- */
         /*        404 y manejo de errores    */
         /* --------------------------------- */
         // Van al final: solo se ejecutan si ninguna ruta anterior respondio
         app.use(rutaNoEncontrada)
         app.use(manejarErrores)
 
-        // Devolvemos una promesa para poder esperar a que el servidor escuche (lo usan los tests)
+        // Devuelvo  una promesa para poder esperar a que el servidor escuche 
         return new Promise((resolve, reject) => {
             this.#server = app.listen(this.#port, () => {
                 console.log(`Servidor MatchPoint escuchando en http://localhost:${this.#port}`)
