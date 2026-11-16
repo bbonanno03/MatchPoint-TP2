@@ -27,19 +27,18 @@ class Server {
             res.json({ estado: 'ok' })
         })
 
-        /* --------------------------------- */
-<<<<<<< HEAD
-        /*       APIRestful: politicas       */     
-        /* --------------------------------- */
-        app.use('/api/politicas', new RouterPoliticas().config())
-=======
+          /* --------------------------------- */
         /*          APIRest: canchas         */
         /* --------------------------------- */
         app.use('/api/canchas', new RouterCanchas().config())
         app.use('/api/lista-espera', new RouterListaEspera().router)
         app.use('/api/reportes', new RouterReportes().router)
->>>>>>> origin/main
 
+        /* --------------------------------- */
+        /*       APIRestful: politicas       */
+        /* --------------------------------- */
+        app.use('/api/politicas', new RouterPoliticas().config())
+        
         /* --------------------------------- */
         /*        404 y manejo de errores    */
         /* --------------------------------- */
