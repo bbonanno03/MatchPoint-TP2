@@ -1,4 +1,7 @@
 import express from 'express'
+import RouterCanchas from './router/canchas.js'
+import RouterListaEspera from './router/listaEspera.js'
+import RouterReportes from './router/reportes.js'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
 import RouterPoliticas from './router/politicas.js'
 
@@ -25,9 +28,17 @@ class Server {
         })
 
         /* --------------------------------- */
+<<<<<<< HEAD
         /*       APIRestful: politicas       */     
         /* --------------------------------- */
         app.use('/api/politicas', new RouterPoliticas().config())
+=======
+        /*          APIRest: canchas         */
+        /* --------------------------------- */
+        app.use('/api/canchas', new RouterCanchas().config())
+        app.use('/api/lista-espera', new RouterListaEspera().router)
+        app.use('/api/reportes', new RouterReportes().router)
+>>>>>>> origin/main
 
         /* --------------------------------- */
         /*        404 y manejo de errores    */

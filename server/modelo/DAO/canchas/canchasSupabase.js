@@ -1,4 +1,5 @@
 import CnxSupabase from '../CnxSupabase.js'
+import { ErrorHttp } from '../../../middlewares/errores.js'
 
 
 // Persistencia en la tabla "courts" de Supabase.
@@ -34,6 +35,10 @@ class ModeloSupabase {
 
     borrarCancha = async id => {
         const { data, error } = await this.#tabla().delete().eq('id', id).select().maybeSingle()
+        // 23503 = la cancha tiene reservas o resenas que la referencian (clave foranea)
+        if (error?.code == '23503') {
+            throw new ErrorHttp(409, 'La cancha tiene reservas asociadas: desactivala con active=false en lugar de borrarla')
+        }
         if (error) throw new Error(error.message)
         return data
     }

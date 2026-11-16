@@ -72,8 +72,8 @@ Cada uno tiene un ABM, al menos un caso complejo, sus tests, su documentación y
 | 1.3 | Conexión a Supabase + Factory + DAO de canchas (en memoria y en Supabase) | ✅ Hecho |
 | 1.4 | Middleware de auth: `autenticar` (valida el token) y `soloAdmin` (valida el rol) | ✅ Hecho |
 | 1.5 | Tests con mocha: servidor, auth y DAO de canchas (13 tests pasando) + README de la API | ✅ Hecho |
-| 1.6 | Agregar a las canchas los campos **techada** (sí/no), **latitud** y **longitud** (SQL en Supabase + DAOs). **Va primero: lo necesita el clima de Lucas** | ⏳ Pendiente |
-| 1.7 | **ABM completo de canchas**: alta, baja y modificación (solo admin) y consulta (`GET /api/canchas`, `GET /api/canchas/:id`), con filtro `?techada=true\|false&deporte=...` (el "checkbox" que pidió el profe) + validación Joi + tests | ⏳ Pendiente |
+| 1.6 | Agregar a las canchas los campos **techada** (sí/no), **latitud** y **longitud** (SQL en Supabase + DAOs). **Va primero: lo necesita el clima de Lucas** | 🔶 Código hecho; falta correr el SQL en Supabase |
+| 1.7 | **ABM completo de canchas**: alta, baja y modificación (solo admin) y consulta (`GET /api/canchas`, `GET /api/canchas/:id`), con filtro `?techada=true\|false&deporte=...` (el "checkbox" que pidió el profe) + validación Joi + tests | ✅ Hecho (31 tests) |
 | 1.8 | **Caso complejo - Subida de imágenes**: `POST /api/canchas/:id/imagen` recibe la foto, valida tipo (jpg/png/webp) y tamaño, la sube a Supabase Storage y guarda la URL en la cancha. No felices: archivo que no es imagen, muy pesado, cancha inexistente | ⏳ Pendiente |
 | 1.9 | Docs de canchas e imágenes + diagrama de clases general + diagrama de secuencia de la subida de imágenes | ⏳ Pendiente |
 
@@ -92,10 +92,10 @@ Cada uno tiene un ABM, al menos un caso complejo, sus tests, su documentación y
 | # | Tarea | Estado |
 | --- | --- | --- |
 | 3.1 | **ABM parcial de lista de espera**: anotarse a un turno ocupado (cancha, fecha y hora), salirse y ver las propias. Tabla nueva en Supabase (SQL en `server/sql/`) | ⏳ Pendiente |
-| 3.2 | **Caso complejo - Aviso por mail**: cuando se cancela una reserva, el servicio busca quiénes estaban en la lista de espera de ese turno y les manda un mail avisando que se liberó (con nodemailer). El envío va con Factory: versión MEM (guarda los mails en un array para los tests) y versión real (SMTP, por ejemplo Gmail con contraseña de aplicación) | ⏳ Pendiente |
-| 3.3 | **Caso complejo - Reporte descargable**: `GET /api/reportes/reservas?desde=...&hasta=...` (solo admin) genera un Excel (.xlsx) con las reservas del período y una hoja de resumen con la ocupación y los ingresos por cancha | ⏳ Pendiente |
-| 3.4 | Tests de lista de espera, mails y reporte: felices + no felices (anotarse a un turno libre, anotarse dos veces, fechas inválidas en el reporte) | ⏳ Pendiente |
-| 3.5 | Docs de lista de espera, mails y reporte + diagrama de secuencia del aviso por mail | ⏳ Pendiente |
+| 3.2 | **Caso complejo - Aviso por mail**: cuando se cancela una reserva, el servicio busca quiénes estaban en la lista de espera de ese turno y les manda un mail avisando que se liberó (con nodemailer). El envío va con Factory: versión MEM (guarda los mails en un array para los tests) y versión real (SMTP, por ejemplo Gmail con contraseña de aplicación) | ✅ Hecho |
+| 3.3 | **Caso complejo - Reporte descargable**: `GET /api/reportes/reservas?desde=...&hasta=...` (solo admin) genera un Excel (.xlsx) con las reservas del período y una hoja de resumen con la ocupación y los ingresos por cancha | ✅ Hecho |
+| 3.4 | Tests de lista de espera, mails y reporte: felices + no felices (anotarse a un turno libre, anotarse dos veces, fechas inválidas en el reporte) | ✅ Hecho |
+| 3.5 | Docs de lista de espera, mails y reporte + diagrama de secuencia del aviso por mail | ✅ Hecho |
 
 ### Entre todos (al final)
 
