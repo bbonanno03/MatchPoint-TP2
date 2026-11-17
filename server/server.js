@@ -4,9 +4,9 @@ import RouterListaEspera from './router/listaEspera.js'
 import RouterReportes from './router/reportes.js'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
 import RouterPoliticas from './router/politicas.js'
+import RouterReservas from './router/reservas.js'
 
-
-class Server {
+class Server {                          
     #port = null
     #server = null
 
@@ -34,14 +34,20 @@ class Server {
         app.use('/api/lista-espera', new RouterListaEspera().router)
         app.use('/api/reportes', new RouterReportes().router)
 
-        /* --------------------------------- */
+        
         /*       APIRestful: politicas       */
         /* --------------------------------- */
         app.use('/api/politicas', new RouterPoliticas().config())
-        
+
+        /* --------------------------------- */
+        /*       APIRestful: reservas        */
+        /* --------------------------------- */
+        app.use('/api/reservas', new RouterReservas().config())
+
         /* --------------------------------- */
         /*        404 y manejo de errores    */
         /* --------------------------------- */
+        
         // Van al final: solo se ejecutan si ninguna ruta anterior respondio
         app.use(rutaNoEncontrada)
         app.use(manejarErrores)
