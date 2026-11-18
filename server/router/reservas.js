@@ -7,8 +7,8 @@ class Router {
     #controlador = null
     #auth = null
 
-    constructor() {
-        this.#controlador = new Controlador()
+    constructor(servicio) {
+        this.#controlador = new Controlador(servicio)
         this.#auth = new Auth()
     }
 

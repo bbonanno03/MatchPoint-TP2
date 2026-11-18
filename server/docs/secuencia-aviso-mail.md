@@ -1,6 +1,6 @@
 # Secuencia: aviso por mail al liberarse un turno
 
-La busqueda de anotados y el envio MEM/SMTP estan implementados en `ServicioListaEspera.avisarReservaCancelada`. El tramo de cancelacion de reservas de la tarea 2.2 todavia debe conectarse: el diagrama describe el contrato previsto, sin fijar una ruta ni un body HTTP que aun no existen. Autenticacion, propiedad de la reserva y anticipacion minima se validan antes de guardar la cancelacion.
+La cancelacion `DELETE /api/reservas/:id` guarda el estado y llama a `ServicioListaEspera.avisarReservaCancelada`. Los routers comparten los servicios/DAOs creados por `crearServicios.js`, incluidos los perfiles MEM para resolver emails. Autenticacion, propiedad de la reserva y anticipacion minima se validan antes de guardar la cancelacion.
 
 ```mermaid
 sequenceDiagram
@@ -15,8 +15,8 @@ sequenceDiagram
     participant F as Factory de mail
     participant M as Servicio de mail MEM o SMTP
 
-    Note over R,D: Integracion pendiente en tarea 2.2
-    U->>R: Solicitar cancelacion con token
+    Note over R,D: Servicios y datos compartidos por servidor
+    U->>R: DELETE /api/reservas/:id con token
     R->>R: Autenticar usuario
     R->>C: cancelar(usuario, reserva)
     C->>S: cancelar(usuario, reserva)
@@ -68,15 +68,15 @@ sequenceDiagram
                 end
             end
             Note over S,L: Si falla consulta o configuracion, S captura la excepcion y conserva cancelled
-            S->>S: Registrar o gestionar resultado del aviso
+            S->>S: Registrar fallidos o excepcion sin revelar datos privados
             S-->>C: Cancelacion confirmada
             C-->>R: Respuesta de cancelacion
-            R-->>U: Confirmacion, incluso si fallaron los mails
+            R-->>U: 200 con reserva cancelled, incluso si fallaron los mails
         end
     end
 ```
 
-El servicio de reservas no debe incluir el guardado y el envio dentro de una operacion que revierta la cancelacion si el correo falla. Los errores por destinatario se devuelven como `fallidos`; las excepciones de consulta o configuracion deben capturarse en el servicio de reservas. Esa captura forma parte de la integracion pendiente, no del router de lista de espera.
+El servicio de reservas guarda antes de enviar. Los errores por destinatario se devuelven como `fallidos` y se registran por cantidad; las excepciones de consulta o configuracion se capturan con un aviso generico en el servicio de reservas. Ninguna de esas fallas revierte la cancelacion. Un segundo DELETE de la misma reserva responde `409` sin volver a notificar.
 
 MEM guarda los mensajes en un array para los tests. SMTP envia un mensaje por destinatario, sin exponer una lista de direcciones. No se reserva el turno para nadie, no se eliminan las inscripciones al avisar y no hay deduplicacion automatica si se vuelve a invocar el metodo.
 

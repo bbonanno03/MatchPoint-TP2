@@ -7,6 +7,8 @@ class AuthMem {
     }
 
     obtenerUsuarioPorToken = async token => this.#usuarios[token] || null
+
+    obtenerUsuarioPorId = async id => Object.values(this.#usuarios).find(u => u.id === id) || null
 }
 
 export default AuthMem
