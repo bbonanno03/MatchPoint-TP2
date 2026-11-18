@@ -3,6 +3,7 @@ import RouterCanchas from './router/canchas.js'
 import RouterListaEspera from './router/listaEspera.js'
 import RouterReportes from './router/reportes.js'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
+import RouterPoliticas from './router/politicas.js'
 
 
 class Server {
@@ -26,7 +27,7 @@ class Server {
             res.json({ estado: 'ok' })
         })
 
-        /* --------------------------------- */
+          /* --------------------------------- */
         /*          APIRest: canchas         */
         /* --------------------------------- */
         app.use('/api/canchas', new RouterCanchas().config())
@@ -34,13 +35,18 @@ class Server {
         app.use('/api/reportes', new RouterReportes().router)
 
         /* --------------------------------- */
+        /*       APIRestful: politicas       */
+        /* --------------------------------- */
+        app.use('/api/politicas', new RouterPoliticas().config())
+        
+        /* --------------------------------- */
         /*        404 y manejo de errores    */
         /* --------------------------------- */
         // Van al final: solo se ejecutan si ninguna ruta anterior respondio
         app.use(rutaNoEncontrada)
         app.use(manejarErrores)
 
-        // Devolvemos una promesa para poder esperar a que el servidor escuche (lo usan los tests)
+        // Devuelvo  una promesa para poder esperar a que el servidor escuche 
         return new Promise((resolve, reject) => {
             this.#server = app.listen(this.#port, () => {
                 console.log(`Servidor MatchPoint escuchando en http://localhost:${this.#port}`)

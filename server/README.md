@@ -128,6 +128,56 @@ Error de validacion (`400`):
 { "url": "/api/canchas", "method": "POST", "error": "\"price\" must be a positive number" }
 ```
 
+### Politicas (`/api/politicas`)
+
+Reglas de reserva del club. Hay un unico juego de politicas para todo el sistema y las usa el servicio de reservas.
+
+| Metodo | Ruta | Auth | Descripcion | Respuestas |
+| --- | --- | --- | --- | --- |
+| `GET` | `/api/politicas` | No | Devuelve las politicas vigentes | `200` |
+| `PUT` | `/api/politicas` | Admin | Modifica uno o mas campos; los no enviados se mantienen | `200` · `400` · `401` · `403` |
+
+Campos de las politicas:
+
+| Campo | Tipo | Regla |
+| --- | --- | --- |
+| `max_active_reservations` | entero | maximo de reservas activas por usuario, 1 o mas |
+| `cancellation_hours` | entero | horas minimas de anticipacion para cancelar, 0 o mas |
+| `opening_time` | texto | horario de apertura, formato `HH:MM` |
+| `closing_time` | texto | horario de cierre, formato `HH:MM`, posterior a la apertura |
+
+Ejemplo de consulta:
+
+```http
+GET /api/politicas
+```
+
+Respuesta `200`:
+
+```json
+{ "id": "1", "max_active_reservations": 5, "cancellation_hours": 24, "opening_time": "08:00", "closing_time": "23:00", "updated_at": "2026-11-16T20:00:00.000Z" }
+```
+
+Ejemplo de modificacion:
+
+```http
+PUT /api/politicas
+Authorization: Bearer token-admin
+Content-Type: application/json
+
+{ "max_active_reservations": 3 }
+```
+
+Respuesta `200`: las politicas completas ya actualizadas.
+
+Errores:
+
+| Codigo | Cuando |
+| --- | --- |
+| `400` | Body vacio, un valor invalido (ej. `max_active_reservations: 0` u hora `"25:00"`) o la apertura no es anterior al cierre |
+| `401` | Falta el token o es invalido |
+| `403` | El usuario no es administrador |
+
 ### Lista de espera (`/api/lista-espera`) - ABM parcial
 
 Todas las rutas requieren un token valido. Cada usuario, incluido un admin, consulta y elimina solamente sus propias inscripciones. No hay modificacion ni reserva automatica del turno.
