@@ -11,12 +11,16 @@ class Servicio {
     #canchas = null
     #politicas = null
     #listaEspera = null
+    #registrarAviso
 
-    constructor() {
-        this.#modelo = ModelFactory.get(config.MODO_PERSISTENCIA)
-        this.#canchas = CanchasFactory.get(config.MODO_PERSISTENCIA)     
-        this.#politicas = new ServicioPoliticas()                          
-        this.#listaEspera = new ServicioListaEspera()                      
+    constructor({ modelo, canchas, politicas, listaEspera, registrarAviso } = {}) {
+        this.#modelo = modelo || ModelFactory.get(config.MODO_PERSISTENCIA)
+        this.#canchas = canchas || CanchasFactory.get(config.MODO_PERSISTENCIA)
+        this.#politicas = politicas || new ServicioPoliticas()
+        this.#listaEspera = listaEspera || new ServicioListaEspera()
+        this.#registrarAviso = registrarAviso || (({ enviados, fallidos }) => {
+            if (fallidos.length) console.warn(`Aviso de turno: ${enviados} enviados, ${fallidos.length} fallidos`)
+        })
     }
 
     // Error con status HTTP para que el controlador sepa que responder
@@ -113,10 +117,11 @@ class Servicio {
         // Avisa por mail a la lista de espera (servicio de Ezequiel).
         // Si el mail falla, la cancelacion igual queda hecha.
         try {
-            await this.#listaEspera.avisarReservaCancelada(reservaCancelada)
+            const resultado = await this.#listaEspera.avisarReservaCancelada(reservaCancelada)
+            await this.#registrarAviso(resultado)
         }
-        catch (error) {
-            console.log(`No se pudo avisar a la lista de espera: ${error.message}`)
+        catch {
+            console.warn('No se pudo completar el aviso a la lista de espera; la reserva sigue cancelada')
         }
 
         return reservaCancelada

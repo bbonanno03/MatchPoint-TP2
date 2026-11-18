@@ -6,9 +6,11 @@ import config from '../config.js'
 
 class Servicio {
     #modelo = null
+    #reservas = null
 
-    constructor() {
-        this.#modelo = ModelFactory.get(config.MODO_PERSISTENCIA)
+    constructor({ modelo, reservas } = {}) {
+        this.#modelo = modelo || ModelFactory.get(config.MODO_PERSISTENCIA)
+        this.#reservas = reservas
     }
 
     // Filtros opcionales: techada ('true' | 'false') y deporte
@@ -47,6 +49,10 @@ class Servicio {
     }
 
     borrarCancha = async id => {
+        // Igual que la FK en Supabase: conservar las canchas de reservas historicas.
+        if (this.#reservas && (await this.#reservas.obtenerReservas()).some(r => r.court_id === id)) {
+            throw new ErrorHttp(409, 'No se puede borrar una cancha con reservas')
+        }
         const cancha = await this.#modelo.borrarCancha(id)
         if (!cancha) throw new ErrorHttp(404, 'Cancha no encontrada')
         return cancha

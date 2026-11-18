@@ -5,15 +5,15 @@ class ModeloMem {
     #reservas
     #usuarios
 
-    // Consulta de ocupacion provisoria hasta integrar el DAO de reservas (tarea 2.2).
-    // Sin datos ficticios en produccion; las pruebas pueden inyectar reservas.
+    // Acepta DAOs compartidos del servidor o arrays aislados para tests unitarios.
     constructor(reservas = [], usuarios = []) {
         this.#reservas = reservas
         this.#usuarios = usuarios
     }
 
     obtenerReservaTurno = async ({ court_id, reservation_date, start_time }) => {
-        return this.#reservas.find(r => r.court_id === court_id &&
+        const reservas = Array.isArray(this.#reservas) ? this.#reservas : await this.#reservas.obtenerReservas()
+        return reservas.find(r => r.court_id === court_id &&
             r.reservation_date === reservation_date && r.start_time.slice(0, 5) === start_time &&
             ['active', 'confirmed'].includes(r.status)) || null
     }
@@ -22,9 +22,13 @@ class ModeloMem {
         .filter(i => i.user_id === userId).map(i => ({ ...i }))
 
     obtenerEnEsperaPorTurno = async ({ court_id, reservation_date, start_time }) => {
-        return this.#inscripciones.filter(i => i.court_id === court_id &&
+        const anotados = this.#inscripciones.filter(i => i.court_id === court_id &&
             i.reservation_date === reservation_date && i.start_time.slice(0, 5) === start_time)
-            .map(i => ({ user_id: i.user_id, email: this.#usuarios.find(u => u.id === i.user_id)?.email }))
+        return Promise.all(anotados.map(async i => {
+            const usuario = Array.isArray(this.#usuarios) ? this.#usuarios.find(u => u.id === i.user_id)
+                : await this.#usuarios.obtenerUsuarioPorId(i.user_id)
+            return { user_id: i.user_id, email: usuario?.email }
+        }))
     }
 
     guardarInscripcion = async inscripcion => {

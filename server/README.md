@@ -95,7 +95,7 @@ Los rechazos de autenticacion y rol pueden responder solo `{ "error": "mensaje" 
 | `GET` | `/api/canchas/:id` | No | Devuelve una cancha | `200` · `404` |
 | `POST` | `/api/canchas` | Admin | Crea una cancha | `201` cancha creada · `400` · `401` · `403` |
 | `PUT` | `/api/canchas/:id` | Admin | Modifica los campos enviados | `200` · `400` · `401` · `403` · `404` |
-| `DELETE` | `/api/canchas/:id` | Admin | Borra la cancha | `200` cancha borrada · `401` · `403` · `404` · `409` si tiene reservas (Supabase) |
+| `DELETE` | `/api/canchas/:id` | Admin | Borra la cancha | `200` cancha borrada · `401` · `403` · `404` · `409` si tiene reservas, incluso canceladas (MEM y Supabase) |
 
 Campos de una cancha:
 
@@ -198,7 +198,17 @@ Campos del alta:
 
 No enviar `user_id`, `id`, `created_at` ni otros campos: se rechazan. El usuario sale del token y el servidor genera el id y la fecha de alta. Un turno se identifica por cancha, fecha y hora de inicio exactas. Debe existir una reserva `active` o `confirmed` de ese turno; una reserva `cancelled` no lo ocupa.
 
-Ejemplo con un turno **ya ocupado** en MEM:
+Ejemplo en MEM: primero crear una reserva por la API con el administrador y despues anotar al jugador en el mismo turno. Elegir una fecha futura que respete las politicas del club:
+
+```http
+POST /api/reservas
+Authorization: Bearer token-admin
+Content-Type: application/json
+
+{ "court_id": "1", "reservation_date": "2027-01-20", "start_time": "18:00" }
+```
+
+Con la reserva creada (`201`), anotar al jugador:
 
 ```http
 POST /api/lista-espera
@@ -243,7 +253,7 @@ Si se intenta anotar otra vez, responde `409` con `error: "Ya estas en la lista 
 { "url": "/api/lista-espera", "method": "POST", "error": "El turno esta libre; no corresponde anotarse en lista de espera" }
 ```
 
-**Estado de integracion:** el servidor MEM arranca sin reservas de ejemplo. Hasta conectar el DAO de reservas de la tarea 2.2, el alta del ejemplo responde `409` en ese servidor vacio; los tests de lista de espera inyectan reservas ocupadas para probar el caso `201`. En Supabase la ocupacion se consulta en la tabla `reservations`.
+**Integracion:** el servidor MEM arranca sin reservas de ejemplo y comparte los datos entre routers mediante [`servicio/crearServicios.js`](servicio/crearServicios.js). Las reservas creadas por `POST /api/reservas` son visibles para la lista de espera y el reporte. El usuario del aviso se resuelve desde los perfiles de prueba de AuthMem. En Supabase se consultan las tablas `reservations` y `profiles`. Los servidores MEM diferentes no comparten reservas, canchas ni inscripciones.
 
 ### Reporte de reservas (`/api/reportes/reservas`)
 
@@ -285,7 +295,7 @@ Ejemplo de error `400` para `?desde=2027-02-29&hasta=2027-03-01`:
 { "url": "/api/reportes/reservas?desde=2027-02-29&hasta=2027-03-01", "method": "GET", "error": "Indicar desde y hasta validos (YYYY-MM-DD), con desde menor o igual a hasta" }
 ```
 
-En Supabase se pagina la consulta para superar el limite habitual de 1000 filas. En MEM se usan reservas y canchas inyectadas en el adaptador; por defecto el reporte esta vacio hasta integrar los datos de reservas de la tarea 2.2.
+En Supabase se pagina la consulta para superar el limite habitual de 1000 filas. En MEM el reporte consulta los DAOs compartidos en cada descarga: refleja altas, cancelaciones y cambios en la tarifa actual de canchas. Esta vacio solamente si no hay reservas para el periodo. No se permite borrar una cancha con historial de reservas, para conservar los datos necesarios del reporte.
 
 ## Aviso por mail al cancelar una reserva
 
@@ -299,10 +309,12 @@ Devuelve, por ejemplo:
 
 Sin anotados devuelve `{ "enviados": 0, "fallidos": [] }`. Un email ausente/invalido o un fallo de envio queda en `fallidos` y se continua con los demas. Los detalles privados del error SMTP no se incluyen en ese resultado. Si la reserva no esta cancelada o el turno sigue ocupado, lanza un error con status `409`; si los datos del turno son invalidos, `400`. Los fallos de consulta o configuracion SMTP pueden lanzar una excepcion antes de los envios.
 
-**Integracion pendiente con la tarea 2.2:** el servicio de reservas debe invocarlo **despues** de guardar la cancelacion y con la reserva devuelta por el DAO. En MEM debe compartir los datos/instancia de lista de espera que usa su router. Debe capturar los fallos del aviso, registrar o gestionar el resultado y responder la cancelacion confirmada sin revertirla. No se debe volver a ejecutar la cancelacion para reintentar mails; el aviso actual no incluye deduplicacion de reintentos.
+**Integracion con reservas:** `DELETE /api/reservas/:id` requiere token del duenio o admin. El servicio guarda `cancelled` y despues invoca el aviso sobre la misma lista de espera que usa el router. Devuelve `200` con la reserva cancelada aunque falle un envio o la configuracion SMTP. Los fallos por destinatario se registran por cantidad, sin direcciones ni errores privados del proveedor; las excepciones anteriores al envio generan un mensaje generico. Un segundo intento de cancelar la misma reserva devuelve `409` sin repetir los mails. El metodo interno de aviso, si se invoca directamente, no deduplica reintentos.
 
-El [diagrama de secuencia del aviso por mail](docs/secuencia-aviso-mail.md) muestra ese contrato de integracion y el tratamiento de fallos. La ruta y la respuesta HTTP concretas de cancelacion quedan a cargo de la tarea 2.2.
+El [diagrama de secuencia del aviso por mail](docs/secuencia-aviso-mail.md) muestra la integracion y el tratamiento de fallos. Para observar el correo MEM en una prueba, `Server` admite `new Server(0, { correo, registrarAviso })`: inyectar un `MailMem` y una funcion que reciba `{ enviados, fallidos }`. No hay un endpoint publico que exponga los mails.
+
+El frontend Vue todavia cancela directamente en Supabase. Para activar este aviso, la cancelacion debe pasar por la API del servidor; conectar el frontend es una tarea compartida opcional de la demo.
 
 ## Pruebas de lista de espera, mails y reportes
 
-Desde `server/`, ejecutar `npm test`. Las suites `listaEspera.test.js`, `mails.test.js`, `reportes.test.js` y `daosReportesListaEspera.test.js` cubren altas, bajas, consulta propia, turno libre, duplicados, autorizacion, fallos de correo, fechas invalidas, descarga y lectura del Excel, calculos y paginacion. Usan MEM o bordes simulados de SMTP/PostgREST; no requieren credenciales ni modifican Supabase. La cancelacion completa desde la API y la entrega SMTP real necesitan validacion de integracion posterior.
+Desde `server/`, ejecutar `npm test`. Las suites `listaEspera.test.js`, `mails.test.js`, `reportes.test.js` y `daosReportesListaEspera.test.js` cubren altas, bajas, consulta propia, turno libre, duplicados, autorizacion, fallos de correo, fechas invalidas, descarga y lectura del Excel, calculos y paginacion. `integracionReservas.test.js` prueba el circuito completo por HTTP, los emails MEM correctos, fallos sin revertir la cancelacion, canchas compartidas, aislamiento entre servidores y el Excel actualizado. Usan MEM o bordes simulados de SMTP/PostgREST; no requieren credenciales ni modifican Supabase. Queda pendiente validar la entrega SMTP y la persistencia contra Supabase reales.

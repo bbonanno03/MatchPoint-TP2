@@ -6,8 +6,8 @@ import Servicio from '../servicio/canchas.js'
 class Controlador {
     #servicio = null
 
-    constructor() {
-        this.#servicio = new Servicio()
+    constructor(servicio = new Servicio()) {
+        this.#servicio = servicio
     }
 
     obtenerCanchas = async (req, res) => {

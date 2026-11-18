@@ -1,4 +1,5 @@
 import express from 'express'
+import crearServicios from './servicio/crearServicios.js'
 import RouterCanchas from './router/canchas.js'
 import RouterListaEspera from './router/listaEspera.js'
 import RouterReportes from './router/reportes.js'
@@ -10,12 +11,16 @@ class Server {
     #port = null
     #server = null
 
-    constructor(port) {
+    #opciones
+
+    constructor(port, opciones = {}) {
         this.#port = port
+        this.#opciones = opciones
     }
 
     start() {
         const app = express()
+        const servicios = crearServicios(this.#opciones)
 
         app.use(express.json())
         app.use(express.urlencoded({ extended: true }))
@@ -30,9 +35,9 @@ class Server {
           /* --------------------------------- */
         /*          APIRest: canchas         */
         /* --------------------------------- */
-        app.use('/api/canchas', new RouterCanchas().config())
-        app.use('/api/lista-espera', new RouterListaEspera().router)
-        app.use('/api/reportes', new RouterReportes().router)
+        app.use('/api/canchas', new RouterCanchas(servicios.canchas).config())
+        app.use('/api/lista-espera', new RouterListaEspera(servicios.listaEspera).router)
+        app.use('/api/reportes', new RouterReportes(servicios.reportes).router)
 
         
         /*       APIRestful: politicas       */
@@ -42,7 +47,7 @@ class Server {
         /* --------------------------------- */
         /*       APIRestful: reservas        */
         /* --------------------------------- */
-        app.use('/api/reservas', new RouterReservas().config())
+        app.use('/api/reservas', new RouterReservas(servicios.reservas).config())
 
         /* --------------------------------- */
         /*        404 y manejo de errores    */

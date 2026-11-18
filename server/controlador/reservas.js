@@ -4,8 +4,8 @@ import Servicio from '../servicio/reservas.js'
 class Controlador {
     #servicio = null
 
-    constructor() {
-        this.#servicio = new Servicio()
+    constructor(servicio = new Servicio()) {
+        this.#servicio = servicio
     }
 
     obtenerReservas = async (req, res) => {

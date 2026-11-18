@@ -91,11 +91,11 @@ Cada uno tiene un ABM, al menos un caso complejo, sus tests, su documentación y
 
 | # | Tarea | Estado |
 | --- | --- | --- |
-| 3.1 | **ABM parcial de lista de espera**: anotarse a un turno ocupado (cancha, fecha y hora), salirse y ver las propias. Tabla nueva en Supabase (SQL en `server/sql/`) | ⏳ Pendiente |
-| 3.2 | **Caso complejo - Aviso por mail**: cuando se cancela una reserva, el servicio busca quiénes estaban en la lista de espera de ese turno y les manda un mail avisando que se liberó (con nodemailer). El envío va con Factory: versión MEM (guarda los mails en un array para los tests) y versión real (SMTP, por ejemplo Gmail con contraseña de aplicación) | ✅ Hecho |
-| 3.3 | **Caso complejo - Reporte descargable**: `GET /api/reportes/reservas?desde=...&hasta=...` (solo admin) genera un Excel (.xlsx) con las reservas del período y una hoja de resumen con la ocupación y los ingresos por cancha | ✅ Hecho |
-| 3.4 | Tests de lista de espera, mails y reporte: felices + no felices (anotarse a un turno libre, anotarse dos veces, fechas inválidas en el reporte) | ✅ Hecho |
-| 3.5 | Docs de lista de espera, mails y reporte + diagrama de secuencia del aviso por mail | ✅ Hecho |
+| 3.1 | **ABM parcial de lista de espera**: anotarse a un turno ocupado (cancha, fecha y hora), salirse y ver las propias. Tabla nueva en Supabase (SQL en `server/sql/`) | 🔶 Integrado y probado en MEM; falta validar SQL y Supabase reales |
+| 3.2 | **Caso complejo - Aviso por mail**: cuando se cancela una reserva, el servicio busca quiénes estaban en la lista de espera de ese turno y les manda un mail avisando que se liberó (con nodemailer). El envío va con Factory: versión MEM (guarda los mails en un array para los tests) y versión real (SMTP, por ejemplo Gmail con contraseña de aplicación) | 🔶 Integrado con cancelacion y probado en MEM; falta validar SMTP real |
+| 3.3 | **Caso complejo - Reporte descargable**: `GET /api/reportes/reservas?desde=...&hasta=...` (solo admin) genera un Excel (.xlsx) con las reservas del período y una hoja de resumen con la ocupación y los ingresos por cancha | 🔶 Integrado y probado con reservas MEM; falta validar Supabase real |
+| 3.4 | Tests de lista de espera, mails y reporte: felices + no felices (anotarse a un turno libre, anotarse dos veces, fechas inválidas en el reporte) | ✅ Hecho, incluye pruebas HTTP del circuito completo |
+| 3.5 | Docs de lista de espera, mails y reporte + diagrama de secuencia del aviso por mail | ✅ Hecho, docs y secuencia actualizadas a la integracion |
 
 ### Entre todos (al final)
 
