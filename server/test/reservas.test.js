@@ -69,9 +69,12 @@ describe('reservas', () => {
             assert.strictEqual(res.status, 400)
         })
 
-        it('en una fecha pasada responde 400', async () => {
-            const res = await reservar('token-player', { court_id: '1', reservation_date: fechaEn(-1), start_time: '19:00' })
+            it('con una fecha que no existe (30 de febrero) responde 400', async () => {
+            const res = await reservar('token-player', { court_id: '1', reservation_date: '2027-02-30', start_time: '19:00' })
+            const body = await res.json()
+
             assert.strictEqual(res.status, 400)
+            assert.strictEqual(body.error, 'La fecha no existe')
         })
 
         it('fuera del horario del club responde 400', async () => {
@@ -80,6 +83,11 @@ describe('reservas', () => {
 
             assert.strictEqual(res.status, 400)
             assert.strictEqual(body.error, 'Las reservas deben estar entre 08:00 y 23:00')
+        })
+
+            it('en una fecha pasada responde 400', async () => {
+            const res = await reservar('token-player', { court_id: '1', reservation_date: fechaEn(-1), start_time: '19:00' })
+            assert.strictEqual(res.status, 400)
         })
 
         it('en una cancha inexistente responde 404', async () => {

@@ -23,8 +23,18 @@ class Reserva {
             start_time: Joi.string().pattern(hora).required()
         })
 
-        const { error } = schemaReserva.validate(this.get())
+               const { error } = schemaReserva.validate(this.get())
         if (error) throw this.#errorValidacion(error.message)
+
+        // El formato puede estar bien y la fecha no existir (ej. 2027-02-30)
+        if (!this.#esFechaReal(this.reservation_date)) throw this.#errorValidacion('La fecha no existe')
+    }
+
+    // Arma la fecha y se fija que no se haya "corrido": 2027-02-30 pasaria a ser 2027-03-02
+    #esFechaReal = texto => {
+        const [anio, mes, dia] = texto.split('-').map(Number)
+        const fecha = new Date(anio, mes - 1, dia)
+        return fecha.getFullYear() == anio && fecha.getMonth() == mes - 1 && fecha.getDate() == dia
     }
 
     // El turno dura una hora: si empieza 19:00, termina 20:00 (igual que en el front)
