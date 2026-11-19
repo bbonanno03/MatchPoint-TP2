@@ -26,6 +26,7 @@ npm test
 | `SMTP_USER` | Usuario SMTP; obligatorio con `MODO_MAIL=SMTP` | vacio |
 | `SMTP_PASS` | Contrasena SMTP; para Gmail, contrasena de aplicacion. Obligatoria con `MODO_MAIL=SMTP` | vacio |
 | `MAIL_FROM` | Email del remitente; obligatorio con `MODO_MAIL=SMTP` | vacio |
+| `MODO_CLIMA` | `OPENMETEO` (API real, sin clave) o `MEM` (clima fijo para probar sin internet) | `OPENMETEO` |
 
 Ejemplo de configuracion para Gmail (reemplazar los valores de ejemplo en el `.env` local, que no se versiona):
 
@@ -177,6 +178,110 @@ Errores:
 | `400` | Body vacio, un valor invalido (ej. `max_active_reservations: 0` u hora `"25:00"`) o la apertura no es anterior al cierre |
 | `401` | Falta el token o es invalido |
 | `403` | El usuario no es administrador |
+
+### Reservas (`/api/reservas`)
+
+Un usuario logueado reserva un turno de 1 hora en una cancha. El servicio valida los datos y aplica las politicas del club antes de guardar.
+
+| Metodo | Ruta | Auth | Descripcion | Respuestas |
+| --- | --- | --- | --- | --- |
+| `GET` | `/api/reservas` | Si | El jugador ve sus reservas; el admin ve todas | `200` · `401` |
+| `POST` | `/api/reservas` | Si | Crea una reserva a nombre del usuario del token | `201` · `400` · `401` · `404` · `409` |
+| `DELETE` | `/api/reservas/:id` | Si | Cancela una reserva propia (el admin, cualquiera) y avisa a la lista de espera | `200` · `401` · `404` · `409` |
+
+Campos para crear una reserva (`user_id`, `end_time` y `status` los pone el servidor):
+
+| Campo | Tipo | Regla |
+| --- | --- | --- |
+| `court_id` | texto | id de una cancha existente y activa |
+| `reservation_date` | texto | fecha real en formato `YYYY-MM-DD` (rechaza fechas como `2027-02-30`) |
+| `start_time` | texto | formato `HH:MM`; el turno termina 1 hora despues |
+
+Reglas que se validan al reservar:
+
+1. El turno no puede estar en el pasado.
+2. La cancha tiene que existir y estar activa.
+3. El turno tiene que estar dentro del horario de apertura y cierre de las politicas.
+4. El usuario no puede pasar el maximo de reservas activas de las politicas.
+5. El turno no puede estar ocupado por otra reserva activa.
+
+Al cancelar se pide la anticipacion minima de las politicas (`cancellation_hours`). Si la cancelacion se hace, se avisa por mail a la lista de espera; si el mail falla, la reserva igual queda cancelada.
+
+Ejemplo de alta:
+
+```http
+POST /api/reservas
+Authorization: Bearer token-player
+Content-Type: application/json
+
+{ "court_id": "1", "reservation_date": "2026-12-01", "start_time": "19:00" }
+```
+
+Respuesta `201`:
+
+```json
+{ "id": "1", "court_id": "1", "user_id": "u2", "reservation_date": "2026-12-01", "start_time": "19:00", "end_time": "20:00", "status": "active", "created_at": "2026-11-18T20:00:00.000Z" }
+```
+
+Errores:
+
+| Codigo | Cuando |
+| --- | --- |
+| `400` | Falta un campo, formato invalido, fecha inexistente, turno en el pasado o fuera del horario del club |
+| `401` | Falta el token o es invalido |
+| `404` | Cancha inexistente o inactiva; al cancelar, reserva inexistente o de otro usuario |
+| `409` | Turno ocupado, maximo de reservas activas, reserva ya cancelada o cancelacion sin la anticipacion minima |
+
+### Clima (`/api/canchas/:id/clima`)
+
+Antes de reservar, cualquiera puede consultar el pronostico para una cancha en un dia y hora. Si la cancha es techada el clima no importa; si es al aire libre se pide el pronostico a [Open-Meteo](https://open-meteo.com/) con la latitud y longitud de la cancha y se devuelve una recomendacion.
+
+| Metodo | Ruta | Auth | Descripcion | Respuestas |
+| --- | --- | --- | --- | --- |
+| `GET` | `/api/canchas/:id/clima?fecha=YYYY-MM-DD&hora=HH:MM` | No | Pronostico y recomendacion para ese turno | `200` · `400` · `404` · `409` · `502` |
+
+- `fecha`: fecha real entre hoy y dentro de 16 dias (es lo que pronostica Open-Meteo).
+- `hora`: formato `HH:MM`; se usa el dato de esa hora en punto (19:30 usa el de las 19:00).
+- `MODO_CLIMA=OPENMETEO` consulta la API real (no necesita clave). `MODO_CLIMA=MEM` devuelve siempre 22 °C, 10 % de lluvia y 12 km/h de viento, para probar sin internet. Es independiente de `MODO_PERSISTENCIA`.
+
+Recomendaciones (se aplica la primera que corresponda):
+
+| Condicion | Recomendacion |
+| --- | --- |
+| Probabilidad de lluvia de 50 % o mas | Probable lluvia: mejor reservar una cancha techada |
+| Viento de 30 km/h o mas | Mucho viento: puede complicar el juego |
+| 32 °C o mas | Mucho calor: lleva agua y protector solar |
+| 8 °C o menos | Hace frio: veni abrigado |
+| Si no | Buen dia para jugar |
+
+Ejemplo:
+
+```http
+GET /api/canchas/2/clima?fecha=2026-11-20&hora=19:00
+```
+
+Respuesta `200` (cancha al aire libre):
+
+```json
+{ "cancha": "Cancha Tenis 1", "techada": false, "fecha": "2026-11-20", "hora": "19:00", "temperatura": 22, "probabilidadLluvia": 10, "viento": 12, "recomendacion": "Buen dia para jugar" }
+```
+
+Respuesta `200` (cancha techada, no se consulta Open-Meteo):
+
+```json
+{ "cancha": "Cancha Pádel 1", "techada": true, "fecha": "2026-11-20", "hora": "19:00", "recomendacion": "La cancha es techada: el clima no afecta el partido" }
+```
+
+Errores:
+
+| Codigo | Cuando |
+| --- | --- |
+| `400` | Falta `fecha` u `hora`, formato invalido, fecha inexistente, fecha pasada o a mas de 16 dias |
+| `404` | La cancha no existe |
+| `409` | La cancha es al aire libre y no tiene latitud y longitud cargadas |
+| `502` | Open-Meteo no responde, responde con error o no tiene dato para esa hora |
+
+El diagrama de secuencia esta en [`docs/secuencia-clima.md`](docs/secuencia-clima.md).
 
 ### Lista de espera (`/api/lista-espera`) - ABM parcial
 

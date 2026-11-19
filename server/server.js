@@ -6,6 +6,8 @@ import RouterReportes from './router/reportes.js'
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errores.js'
 import RouterPoliticas from './router/politicas.js'
 import RouterReservas from './router/reservas.js'
+import RouterClima from './router/clima.js'
+import ServicioClima from './servicio/clima.js'
 
 class Server {                          
     #port = null
@@ -48,6 +50,10 @@ class Server {
         /*       APIRestful: reservas        */
         /* --------------------------------- */
         app.use('/api/reservas', new RouterReservas(servicios.reservas).config())
+        /* --------------------------------- */
+        /*         APIRestful: clima         */
+        /* --------------------------------- */
+        app.use('/api/canchas', new RouterClima(new ServicioClima({ canchas: servicios.canchas })).config())
 
         /* --------------------------------- */
         /*        404 y manejo de errores    */
