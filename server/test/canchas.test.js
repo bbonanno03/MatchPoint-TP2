@@ -98,6 +98,17 @@ describe('API de canchas (ABM completo)', () => {
             assert.strictEqual(todas.length, 2)
         })
 
+        it('acepta Fútbol, que tambien ofrece el front', async () => {
+            const { status, body } = await pedir(URL, { method: 'POST', headers: ADMIN, body: JSON.stringify({ ...canchaNueva, sport: 'Fútbol' }) })
+            assert.strictEqual(status, 201)
+            assert.strictEqual(body.sport, 'Fútbol')
+        })
+
+        it('con un deporte que no existe responde 400', async () => {
+            const { status } = await pedir(URL, { method: 'POST', headers: ADMIN, body: JSON.stringify({ ...canchaNueva, sport: 'Golf' }) })
+            assert.strictEqual(status, 400)
+        })
+
         it('con latitud sin longitud responde 400', async () => {
             const { latitude, longitude, ...sinUbicacion } = canchaNueva
             const { status } = await pedir(URL, { method: 'POST', headers: ADMIN, body: JSON.stringify({ ...sinUbicacion, latitude }) })
