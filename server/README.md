@@ -93,7 +93,7 @@ Los rechazos de autenticacion y rol pueden responder solo `{ "error": "mensaje" 
 
 | Metodo | Ruta | Auth | Descripcion | Respuestas |
 | --- | --- | --- | --- | --- |
-| `GET` | `/api/canchas` | No | Lista las canchas. Filtros opcionales: `?techada=true\|false`, `?deporte=Pádel\|Tenis` | `200` lista · `400` filtro invalido |
+| `GET` | `/api/canchas` | No | Lista las canchas. Filtros opcionales: `?techada=true\|false`, `?deporte=Pádel|Tenis|Fútbol`\|Tenis` | `200` lista · `400` filtro invalido |
 | `GET` | `/api/canchas/:id` | No | Devuelve una cancha | `200` · `404` |
 | `POST` | `/api/canchas` | Admin | Crea una cancha | `201` cancha creada · `400` · `401` · `403` |
 | `PUT` | `/api/canchas/:id` | Admin | Modifica los campos enviados | `200` · `400` · `401` · `403` · `404` |
@@ -104,7 +104,7 @@ Campos de una cancha:
 | Campo | Tipo | Alta | Regla |
 | --- | --- | --- | --- |
 | `name` | texto | obligatorio | 3 a 50 caracteres |
-| `sport` | texto | obligatorio | `Pádel` o `Tenis` |
+| `sport` | texto | obligatorio | `Pádel` o ``?deporte=Pádel|Tenis|Fútbol` |
 | `club` | texto | obligatorio | 2 a 50 caracteres |
 | `location` | texto | obligatorio | 2 a 80 caracteres |
 | `price` | numero | obligatorio | tarifa por hora, mayor a 0 |
