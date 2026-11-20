@@ -43,13 +43,27 @@ classDiagram
         +conectar()$
     }
 
-    class RouterCanchas { +config() }
-    class RouterReservas { +config() }
-    class RouterPoliticas { +config() }
-    class RouterListaEspera { +router }
-    class RouterReportes { +router }
-    class RouterClima { +config() }
-    class RouterImagenes { +config() }
+    class RouterCanchas {
+        +config()
+    }
+    class RouterReservas {
+        +config()
+    }
+    class RouterPoliticas {
+        +config()
+    }
+    class RouterListaEspera {
+        +router
+    }
+    class RouterReportes {
+        +router
+    }
+    class RouterClima {
+        +config()
+    }
+    class RouterImagenes {
+        +config()
+    }
 
     class ServicioCanchas
     class ServicioReservas
