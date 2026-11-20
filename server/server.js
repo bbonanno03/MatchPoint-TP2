@@ -8,6 +8,8 @@ import RouterPoliticas from './router/politicas.js'
 import RouterReservas from './router/reservas.js'
 import RouterClima from './router/clima.js'
 import ServicioClima from './servicio/clima.js'
+import RouterImagenes from './router/imagenes.js'
+import ServicioImagenes from './servicio/imagenes.js'
 
 class Server {                          
     #port = null
@@ -54,6 +56,11 @@ class Server {
         /*         APIRestful: clima         */
         /* --------------------------------- */
         app.use('/api/canchas', new RouterClima(new ServicioClima({ canchas: servicios.canchas })).config())
+
+        /* --------------------------------- */
+        /*     APIRest: imagenes de canchas  */
+        /* --------------------------------- */
+        app.use('/api/canchas', new RouterImagenes(new ServicioImagenes({ canchas: servicios.canchas })).config())
 
         /* --------------------------------- */
         /*        404 y manejo de errores    */
