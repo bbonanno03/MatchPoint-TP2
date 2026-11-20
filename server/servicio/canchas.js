@@ -48,6 +48,14 @@ class Servicio {
         return cancha
     }
 
+    // La usa el servicio de imagenes (1.8): image_url no se puede cambiar por PUT,
+    // solo subiendo una imagen
+    guardarImagenUrl = async (id, url) => {
+        const cancha = await this.#modelo.actualizarCancha(id, { image_url: url })
+        if (!cancha) throw new ErrorHttp(404, 'Cancha no encontrada')
+        return cancha
+    }
+
     borrarCancha = async id => {
         // Igual que la FK en Supabase: conservar las canchas de reservas historicas.
         if (this.#reservas && (await this.#reservas.obtenerReservas()).some(r => r.court_id === id)) {
