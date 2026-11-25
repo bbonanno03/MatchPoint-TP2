@@ -458,6 +458,22 @@ El [diagrama de secuencia del aviso por mail](docs/secuencia-aviso-mail.md) mues
 
 El frontend Vue todavia cancela directamente en Supabase. Para activar este aviso, la cancelacion debe pasar por la API del servidor; conectar el frontend es una tarea compartida opcional de la demo.
 
+## Pruebas
+
+| Comando | Que corre |
+| --- | --- |
+| `npm test` | Todos los tests (unitarios y end-to-end) |
+| `npm run test:e2e` | Solo el end-to-end |
+
+### Test end-to-end (`test/e2e.test.js`)
+
+Levanta el servidor completo, igual que `index.js` (todas las rutas y middlewares), en modo `MEM`, y le hace pedidos HTTP reales como lo haria el front. Prueba los dos endpoints documentados arriba:
+
+| Endpoint | Caso feliz | Caso no feliz |
+| --- | --- | --- |
+| `POST /api/canchas` | Un admin crea una cancha: `201` con el JSON guardado, y despues se puede consultar con `GET /api/canchas/:id` | Sin el campo `sport`: `400` con el error en JSON |
+| `GET /api/lista-espera` | Un jugador logueado consulta su lista: `200` con `[]` | Sin token: `401` |
+
 ## Pruebas de lista de espera, mails y reportes
 
 Desde `server/`, ejecutar `npm test`. Las suites `listaEspera.test.js`, `mails.test.js`, `reportes.test.js` y `daosReportesListaEspera.test.js` cubren altas, bajas, consulta propia, turno libre, duplicados, autorizacion, fallos de correo, fechas invalidas, descarga y lectura del Excel, calculos y paginacion. `integracionReservas.test.js` prueba el circuito completo por HTTP, los emails MEM correctos, fallos sin revertir la cancelacion, canchas compartidas, aislamiento entre servidores y el Excel actualizado. Usan MEM o bordes simulados de SMTP/PostgREST; no requieren credenciales ni modifican Supabase. Queda pendiente validar la entrega SMTP y la persistencia contra Supabase reales.
