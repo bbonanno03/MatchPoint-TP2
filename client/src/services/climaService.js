@@ -19,6 +19,10 @@ export async function consultarClima({ courtId, fecha, hora, signal }) {
     throw new Error('No se pudo obtener el pronóstico. Intentá nuevamente.')
   }
   if (!respuesta.ok) {
+    if (respuesta.status === 400 && datos?.code === 'PRONOSTICO_NO_DISPONIBLE' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(datos.consultarDesde) && typeof datos.error === 'string') {
+      return { disponible: false, fecha, hora, consultarDesde: datos.consultarDesde, recomendacion: datos.error }
+    }
     if (respuesta.status === 400 && typeof datos?.error === 'string') throw new Error(datos.error)
     if (respuesta.status === 404) throw new Error('No se encontró la cancha.')
     if (respuesta.status === 409) throw new Error('La cancha no tiene una ubicación cargada para consultar el clima.')

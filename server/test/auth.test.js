@@ -41,6 +41,17 @@ describe('middleware de autenticacion (modo MEM)', () => {
             assert.strictEqual(res.statusCode, 401)
         })
 
+        it('con token de la web y API MEM explica configuracion sin simular sesion vencida', async () => {
+            const req = { headers: { authorization: 'Bearer cabecera.contenido.firma' } }
+            const res = crearRes()
+            let paso = false
+            await auth.autenticar(req, res, () => { paso = true })
+            assert.strictEqual(paso, false)
+            assert.strictEqual(res.statusCode, 503)
+            assert.strictEqual(res.body.code, 'API_MODO_MEM')
+            assert.match(res.body.error, /modo de pruebas/)
+        })
+
         it('con token inexistente responde 401', async () => {
             const req = { headers: { authorization: 'Bearer token-falso' } }
             const res = crearRes()

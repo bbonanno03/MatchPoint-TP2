@@ -80,3 +80,13 @@ for (const [nombre, cambios] of [
     await assert.rejects(consultarClima(consulta), /pronóstico incompleto/)
   })
 }
+
+test('una fecha lejana muestra disponibilidad sin inventar temperatura ni generar un error', async () => {
+  mock.method(globalThis, 'fetch', async () => Response.json({ code: 'PRONOSTICO_NO_DISPONIBLE', consultarDesde: '2026-12-17', error: 'Podras consultarlo desde el 2026-12-17. Podes reservar igualmente.' }, { status: 400 }))
+  const datos = await consultarClima(consulta)
+  assert.equal(datos.disponible, false)
+  assert.equal(datos.fecha, consulta.fecha)
+  assert.equal(datos.hora, consulta.hora)
+  assert.equal(datos.consultarDesde, '2026-12-17')
+  assert.equal(datos.temperatura, undefined)
+})

@@ -242,7 +242,7 @@ Antes de reservar, cualquiera puede consultar el pronostico para una cancha en u
 | --- | --- | --- | --- | --- |
 | `GET` | `/api/canchas/:id/clima?fecha=YYYY-MM-DD&hora=HH:MM` | No | Pronostico y recomendacion para ese turno | `200` · `400` · `404` · `409` · `502` |
 
-- `fecha`: fecha real entre hoy y dentro de 16 dias (es lo que pronostica Open-Meteo).
+- `fecha`: fecha real desde hoy. Para canchas al aire libre el horizonte es de 16 dias contando hoy (hasta hoy + 15); para fechas posteriores se informa cuando se podra consultar.
 - `hora`: formato `HH:MM`; se usa el dato de esa hora en punto (19:30 usa el de las 19:00).
 - `MODO_CLIMA=OPENMETEO` consulta la API real (no necesita clave). `MODO_CLIMA=MEM` devuelve siempre 22 °C, 10 % de lluvia y 12 km/h de viento, para probar sin internet. Es independiente de `MODO_PERSISTENCIA`.
 
@@ -278,7 +278,7 @@ Errores:
 
 | Codigo | Cuando |
 | --- | --- |
-| `400` | Falta `fecha` u `hora`, formato invalido, fecha inexistente, fecha pasada o a mas de 16 dias |
+| `400` | Falta `fecha` u `hora`, formato invalido, fecha inexistente, fecha pasada o fuera del horizonte de 16 dias incluido hoy (`PRONOSTICO_NO_DISPONIBLE` con `consultarDesde`) |
 | `404` | La cancha no existe |
 | `409` | La cancha es al aire libre y no tiene latitud y longitud cargadas |
 | `502` | Open-Meteo no responde, responde con error o no tiene dato para esa hora |
@@ -507,3 +507,12 @@ python3 scripts/test-concurrencia-postgres.py
 ```
 
 Comprueba el SQL dos veces, permisos, duracion positiva y dos transacciones concurrentes. Elimina su propio contenedor al terminar.
+
+
+### Sesion de la web y disponibilidad del clima
+
+Si al iniciar la API aparece **Persistiendo en Memoria**, las cuentas reales de la web no pueden reservar: MEM solo reconoce `token-admin` y `token-player`. Un JWT enviado a la API MEM devuelve `503` con `code: API_MODO_MEM`, sin simular que la sesion vencio. El inicio avisa como configurar `server/.env`: `MODO_PERSISTENCIA=SUPABASE`, `SUPABASE_URL` del mismo proyecto que el cliente y `SUPABASE_KEY` de servidor. Reiniciar la API luego de cambiarlo. Nunca usar la clave privada en el cliente ni subir `.env` a Git.
+
+Un token invalido devuelve `401 TOKEN_INVALIDO`; un perfil inactivo devuelve `403 USUARIO_INACTIVO`. El cliente renueva tokens vencidos y reintenta una sola vez ante `401`; no repite una reserva por errores de red ni por configuracion MEM.
+
+El pronostico usa la fecha y hora pedidas y el dia actual en Argentina. El alcance es de **16 dias contando hoy** (hoy hasta hoy + 15). Una fecha futura posterior devuelve `400 PRONOSTICO_NO_DISPONIBLE` con `consultarDesde: YYYY-MM-DD`; la web lo presenta como informacion, sin medidas inventadas ni bloquear la reserva. Para canchas techadas futuras no se aplica ese limite porque no necesitan pronostico. Las fechas pasadas o imposibles siguen siendo errores. No hay pronosticos reales para una fecha futura arbitraria fuera del horizonte del proveedor.

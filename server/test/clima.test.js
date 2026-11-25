@@ -75,7 +75,9 @@ describe('clima', () => {
             const body = await res.json()
 
             assert.strictEqual(res.status, 400)
-            assert.strictEqual(body.error, 'Solo hay pronostico desde hoy hasta dentro de 16 dias')
+            assert.strictEqual(body.code, 'PRONOSTICO_NO_DISPONIBLE')
+            assert.match(body.consultarDesde, /^\d{4}-\d{2}-\d{2}$/)
+            assert.match(body.error, /Podes reservar igualmente/)
         })
 
         it('con una fecha que no existe (30 de febrero) responde 400', async () => {

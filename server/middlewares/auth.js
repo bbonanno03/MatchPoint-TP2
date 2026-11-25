@@ -7,9 +7,11 @@ import config from '../config.js'
 //   router.post('/', auth.autenticar, auth.soloAdmin, this.#controlador.guardarCancha)
 class Auth {
     #modelo = null
+    #tipo
 
     constructor() {
-        this.#modelo = AuthFactory.get(config.MODO_PERSISTENCIA)
+        this.#tipo = config.MODO_PERSISTENCIA
+        this.#modelo = AuthFactory.get(this.#tipo)
     }
 
     // Lee el header "Authorization: Bearer <token>" y deja el usuario en req.usuario
@@ -22,9 +24,15 @@ class Auth {
                 return res.status(401).json({ error: 'Falta el token de autenticacion' })
             }
 
+            if (this.#tipo === 'MEM' && token.split('.').length === 3) {
+                return res.status(503).json({ code: 'API_MODO_MEM', error: 'El servicio de reservas esta en modo de pruebas y no admite cuentas reales. Contacta al administrador para habilitar las reservas.' })
+            }
             const usuario = await this.#modelo.obtenerUsuarioPorToken(token)
-            if (!usuario || !usuario.active) {
-                return res.status(401).json({ error: 'Token invalido o usuario inactivo' })
+            if (!usuario) {
+                return res.status(401).json({ code: 'TOKEN_INVALIDO', error: 'Token invalido' })
+            }
+            if (!usuario.active) {
+                return res.status(403).json({ code: 'USUARIO_INACTIVO', error: 'Tu usuario esta deshabilitado. Consulta con el administrador.' })
             }
 
             req.usuario = usuario

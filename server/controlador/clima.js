@@ -17,7 +17,7 @@ class Controlador {
             res.json(clima)
         }
         catch (error) {
-            res.status(error.status || 500).json({ url: req.url, method: req.method, error: error.message })
+            res.status(error.status || 500).json({ url: req.url, method: req.method, error: error.message, ...(error.code ? { code: error.code, consultarDesde: error.consultarDesde } : {}) })
         }
     }
 }

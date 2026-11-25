@@ -39,3 +39,8 @@ test('rechaza una pagina HTML del proxy en lugar de devolverla como lista', asyn
   mock.method(globalThis, 'fetch', async () => new Response('<html>error</html>'))
   await assert.rejects(apiRequest('/lista-espera'), /respuesta válida/)
 })
+
+test('explica modo MEM sin acusar una sesion vencida', async () => {
+  mock.method(globalThis, 'fetch', async () => Response.json({ code: 'API_MODO_MEM', error: 'Configura MODO_PERSISTENCIA=SUPABASE' }, { status: 503 }))
+  await assert.rejects(apiRequest('/reservas'), e => e.status === 503 && e.code === 'API_MODO_MEM' && e.message.includes('MODO_PERSISTENCIA'))
+})

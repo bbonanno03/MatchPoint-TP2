@@ -4,11 +4,12 @@
       class="w-full border border-brand text-brand hover:bg-green-50 font-semibold rounded-btn px-3 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
       {{ cargando ? 'Consultando…' : 'Consultar clima' }}
     </button>
-    <p class="text-text-small text-text-muted mt-2">Pronóstico disponible desde hoy hasta dentro de 16 días.</p>
+    <p v-if="!pronostico && !error" class="text-text-small text-text-muted mt-2">Consultá el clima del día y horario elegidos. Para fechas lejanas te indicamos cuándo estará disponible.</p>
     <p v-if="error" role="alert" class="mt-3 text-status-error text-text-small">{{ error }}</p>
     <div v-if="pronostico" role="status" aria-live="polite" class="mt-3 space-y-3">
       <p class="text-text-small font-semibold text-text-main">Turno del {{ pronostico.fecha }} a las {{ pronostico.hora }}</p>
-      <p v-if="pronostico.techada" class="text-text-small font-bold text-brand">Cancha techada</p>
+      <p v-if="pronostico.disponible === false" class="text-text-small text-text-muted">El proveedor aún no ofrece un pronóstico para este turno.</p>
+      <p v-else-if="pronostico.techada" class="text-text-small font-bold text-brand">Cancha techada</p>
       <dl v-else class="space-y-2">
         <div class="flex items-baseline justify-between gap-3">
           <dt class="text-text-small text-text-muted">Temperatura</dt>

@@ -41,19 +41,25 @@ class Servicio {
 
         if (!this.#esFechaReal(fecha)) throw this.#error(400, 'La fecha no existe')
 
-        // Solo hay pronostico desde hoy hasta dentro de 16 dias
-        const hoy = new Date()
-        hoy.setHours(0, 0, 0, 0)
-        const dia = new Date(`${fecha}T00:00:00`)
-        const diasQueFaltan = Math.round((dia - hoy) / (1000 * 60 * 60 * 24))
+    }
 
-        if (diasQueFaltan < 0 || diasQueFaltan > DIAS_DE_PRONOSTICO) {
-            throw this.#error(400, `Solo hay pronostico desde hoy hasta dentro de ${DIAS_DE_PRONOSTICO} dias`)
+    #validarHorizonte = (fecha, techada) => {
+        // El proveedor devuelve dias en horario argentino, incluso si el servidor usa UTC.
+        const partes = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
+        const parte = tipo => partes.find(p => p.type === tipo).value
+        const hoy = `${parte('year')}-${parte('month')}-${parte('day')}`
+        const diasQueFaltan = Math.round((Date.parse(fecha) - Date.parse(hoy)) / 86400000)
+        if (diasQueFaltan < 0) throw this.#error(400, 'La fecha del turno ya paso')
+        if (!techada && diasQueFaltan >= DIAS_DE_PRONOSTICO) {
+            const consultarDesde = new Date(Date.parse(fecha) - (DIAS_DE_PRONOSTICO - 1) * 86400000).toISOString().slice(0, 10)
+            throw Object.assign(this.#error(400, `Todavia no hay pronostico para el ${fecha}. Podras consultarlo desde el ${consultarDesde}. Podes reservar igualmente.`), {
+                code: 'PRONOSTICO_NO_DISPONIBLE', consultarDesde,
+            })
         }
     }
 
     obtenerClima = async (id, consulta) => {
-        // 1. Fecha y hora bien escritas y dentro del pronostico
+        // 1. Fecha y hora bien escritas
         this.#validarConsulta(consulta)
 
         // 2. La cancha tiene que existir (si no, el servicio de canchas tira 404)
@@ -61,10 +67,13 @@ class Servicio {
 
         const respuesta = { cancha: cancha.name, techada: cancha.covered, fecha: consulta.fecha, hora: consulta.hora }
 
+        this.#validarHorizonte(consulta.fecha, cancha.covered)
+
         // 3. Si es techada, el clima no importa
         if (cancha.covered) {
             return { ...respuesta, recomendacion: 'La cancha es techada: el clima no afecta el partido' }
         }
+
 
         // 4. Al aire libre: hace falta la ubicacion para pedir el pronostico
         if (cancha.latitude == null || cancha.longitude == null) {

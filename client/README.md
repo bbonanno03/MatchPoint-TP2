@@ -125,7 +125,7 @@ En **Canchas**, pulsar **Reservar Cancha**, elegir dia y horario y pulsar **Cons
 
 El frontend llama a `/api/canchas/:id/clima?fecha=YYYY-MM-DD&hora=HH:MM` usando el mismo proxy `/api` configurado arriba. El backend debe estar en ejecucion y las canchas deben existir alli con los mismos ids que en la web: para usar las canchas de Supabase del frontend, configurar el backend con el mismo proyecto. La ruta de clima es publica; no necesita token de admin.
 
-El modo real del servidor es `MODO_CLIMA=OPENMETEO` (predeterminado); requiere acceso a Open-Meteo y ubicacion de las canchas al aire libre. `MODO_CLIMA=MEM` sirve para ensayos con el pronostico fijo. La fecha debe estar entre hoy y dentro de 16 dias. Un error de pronostico no impide reservar. Al cambiar cancha, fecha u hora, se limpia el resultado y se cancela cualquier consulta anterior para no mostrar el clima de otro turno.
+El modo real del servidor es `MODO_CLIMA=OPENMETEO` (predeterminado); requiere acceso a Open-Meteo y ubicacion de las canchas al aire libre. `MODO_CLIMA=MEM` sirve para ensayos con el pronostico fijo. El proveedor ofrece 16 dias contando hoy (hasta hoy + 15), segun el horario de Argentina. Para fechas posteriores se informa desde cuando se podra consultar; las canchas techadas no necesitan pronostico y pueden consultarse para fechas futuras lejanas. Un error de pronostico no impide reservar. Al cambiar cancha, fecha u hora, se limpia el resultado y se cancela cualquier consulta anterior para no mostrar el clima de otro turno.
 
 
 ## Reservas y lista de espera
@@ -138,3 +138,6 @@ El modo real del servidor es `MODO_CLIMA=OPENMETEO` (predeterminado); requiere a
 Esta version necesita la API levantada contra el mismo proyecto de Supabase que la web (`MODO_PERSISTENCIA=SUPABASE`) y las migraciones del servidor, especialmente `001_lista_espera.sql` y `004_reservas_sin_superposiciones.sql`. La 004 evita dobles reservas simultaneas y revoca escrituras directas de clientes antiguos: desplegar API y frontend en conjunto. Ver configuracion de proxy arriba y [documentacion del servidor](../server/README.md). El backend debe tener su propia clave privada, nunca una variable `VITE_*`.
 
 Para recibir avisos en una casilla real se necesita `MODO_MAIL=SMTP` y las variables SMTP del servidor. `MODO_MAIL=MEM` se usa en tests y no envia correo real. Los tokens fijos MEM no sirven para autenticar una sesion real de la web. Verificacion: `npm test` y `npm run build` desde `client/`.
+
+
+Si la web inicia sesion pero no puede reservar, revisar la terminal de `server`: **Persistiendo en Memoria** indica que la API solo acepta cuentas ficticias de tests. Para cuentas reales se necesita `MODO_PERSISTENCIA=SUPABASE` y las credenciales privadas en `server/.env`, luego reiniciar la API. La web distingue esa configuracion de una sesion vencida y renueva el token una sola vez cuando la API responde `401`. No reintenta automaticamente un alta ante errores de red.
