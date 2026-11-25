@@ -118,3 +118,11 @@ VITE_API_PROXY_TARGET=http://127.0.0.1:8090
 Reiniciar Vite despues de cambiar esa variable. En produccion, configurar el servidor web para reenviar `/api` al backend bajo el mismo origen; el proxy de desarrollo de Vite no se incluye en el build.
 
 Verificacion del servicio de descarga: `npm test` desde `client/`. Compilacion: `npm run build`.
+
+## Consultar clima al reservar
+
+En **Canchas**, pulsar **Reservar Cancha**, elegir dia y horario y pulsar **Consultar clima**. Para canchas al aire libre se muestran temperatura, probabilidad de lluvia, viento y recomendacion. Para techadas se muestra el mensaje de que el clima no afecta el partido. La consulta no crea ni confirma una reserva.
+
+El frontend llama a `/api/canchas/:id/clima?fecha=YYYY-MM-DD&hora=HH:MM` usando el mismo proxy `/api` configurado arriba. El backend debe estar en ejecucion y las canchas deben existir alli con los mismos ids que en la web: para usar las canchas de Supabase del frontend, configurar el backend con el mismo proyecto. La ruta de clima es publica; no necesita token de admin.
+
+El modo real del servidor es `MODO_CLIMA=OPENMETEO` (predeterminado); requiere acceso a Open-Meteo y ubicacion de las canchas al aire libre. `MODO_CLIMA=MEM` sirve para ensayos con el pronostico fijo. La fecha debe estar entre hoy y dentro de 16 dias. Un error de pronostico no impide reservar. Al cambiar cancha, fecha u hora, se limpia el resultado y se cancela cualquier consulta anterior para no mostrar el clima de otro turno.

@@ -61,6 +61,7 @@
             <option v-for="hour in availableHours" :key="hour" :value="hour">{{ hour }} hs</option>
           </select>
         </div>
+        <CourtWeather :court-id="String(court.id)" :fecha="selectedDate" :hora="selectedTime" />
       </div>
     </div>
     
@@ -148,6 +149,7 @@ import { useCourtsStore } from '../stores/courts'
 import { useAuthStore } from '../stores/auth'
 import { useAlertsStore } from '../stores/alerts.js'
 import RatingStars from './RatingStars.vue'
+import CourtWeather from './CourtWeather.vue'
 
 const props = defineProps({
   court: {
