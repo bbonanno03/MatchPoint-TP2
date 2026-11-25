@@ -50,6 +50,7 @@ Crear un archivo `.env` en la raíz del proyecto con:
 ```env
 VITE_SUPABASE_URL=TU_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY=TU_SUPABASE_ANON_KEY
+```
 
 El archivo .env no debe subirse al repositorio.
 
@@ -101,3 +102,19 @@ Sprint 1: Finalizado
 Sprint 2: Finalizado
 Sprint 3: Finalizado
 Sprint 4: Finalizado
+
+## Exportar reservas desde la web
+
+Con una sesion de administrador, entrar a **Metricas** (`/admin/metricas`), elegir **Desde** y **Hasta** y pulsar **Exportar Excel**. Descarga el detalle de reservas y el resumen de ocupacion e ingresos estimados por cancha. El formulario solo se muestra a administradores y el backend vuelve a validar token y rol.
+
+La descarga usa el `access_token` actual de Supabase y consulta `/api/reportes/reservas`. Para usar la cuenta de la web, el servidor debe estar iniciado con `MODO_PERSISTENCIA=SUPABASE`, `SUPABASE_URL` del mismo proyecto y `SUPABASE_KEY` de servidor. Las credenciales privadas nunca van en `VITE_*`. El token real de la web no es uno de los tokens fijos de desarrollo MEM.
+
+Vite reenvia `/api` al backend en `http://127.0.0.1:8080` por defecto. Si se inicia en otro puerto, configurar en `client/.env.local` o en el entorno antes de arrancar Vite:
+
+```env
+VITE_API_PROXY_TARGET=http://127.0.0.1:8090
+```
+
+Reiniciar Vite despues de cambiar esa variable. En produccion, configurar el servidor web para reenviar `/api` al backend bajo el mismo origen; el proxy de desarrollo de Vite no se incluye en el build.
+
+Verificacion del servicio de descarga: `npm test` desde `client/`. Compilacion: `npm run build`.
