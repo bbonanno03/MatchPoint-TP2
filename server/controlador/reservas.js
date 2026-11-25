@@ -14,7 +14,7 @@ class Controlador {
             res.json(reservas)
         }
         catch (error) {
-            res.status(error.status || 500).json({ url: req.url, method: req.method, error: error.message })
+            res.status(error.status || 500).json({ url: req.url, method: req.method, error: error.message, ...(error.code ? { code: error.code } : {}) })
         }
     }
 
@@ -31,7 +31,7 @@ class Controlador {
             res.status(201).json(reserva)
         }
         catch (error) {
-            res.status(error.status || 500).json({ url: req.url, method: req.method, error: error.message })
+            res.status(error.status || 500).json({ url: req.url, method: req.method, error: error.message, ...(error.code ? { code: error.code } : {}) })
         }
     }
 

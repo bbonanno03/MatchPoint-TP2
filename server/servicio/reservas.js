@@ -45,8 +45,9 @@ class Servicio {
     obtenerReservas = async usuario => {
         const reservas = await this.#modelo.obtenerReservas()
 
-        if (usuario.role == 'admin') return reservas                 // el admin ve todas
-        return reservas.filter(r => r.user_id == usuario.id)          // el jugador, solo las suyas
+        const propias = usuario.role === 'admin' ? reservas : reservas.filter(r => r.user_id === usuario.id)
+        const canchas = await this.#canchas.obtenerCanchas()
+        return propias.map(r => ({ ...r, courts: canchas.find(c => c.id === r.court_id) || null }))
     }
 
     // --------------------- Alta ---------------------
@@ -83,13 +84,13 @@ class Servicio {
 
         // 6. Que el turno no este ocupado (otra reserva activa en la misma cancha que se superponga)
         const ocupado = reservas.some(r =>
-            r.status == 'active' &&
+            ['active', 'confirmed'].includes(r.status) &&
             r.court_id == reserva.court_id &&
             r.reservation_date == reserva.reservation_date &&
             this.#aMinutos(r.start_time) < termina &&
             empieza < this.#aMinutos(r.end_time)
         )
-        if (ocupado) throw this.#error(409, 'El turno ya esta ocupado')
+        if (ocupado) throw Object.assign(this.#error(409, 'El turno ya esta ocupado'), { code: 'TURNO_OCUPADO' })
 
         const reservaGuardada = await this.#modelo.guardarReserva({ ...reserva, user_id: usuario.id, status: 'active' })
         return reservaGuardada
@@ -113,6 +114,7 @@ class Servicio {
         }
 
         const reservaCancelada = await this.#modelo.cancelarReserva(id)
+        if (!reservaCancelada) throw this.#error(409, 'La reserva ya esta cancelada')
 
         // Avisa por mail a la lista de espera (servicio de Ezequiel).
         // Si el mail falla, la cancelacion igual queda hecha.

@@ -50,6 +50,7 @@ Los cambios a las tablas estan en `sql/`, numerados. Se ejecutan en orden desde 
 | [`001_lista_espera.sql`](sql/001_lista_espera.sql) | Crea `waiting_list`, sus claves foraneas, restriccion de inscripcion unica por usuario/turno e indice de busqueda por turno |
 | [`002_canchas_techada_ubicacion.sql`](sql/002_canchas_techada_ubicacion.sql) | Agrega a `courts` los campos `covered` (techada), `latitude` y `longitude` |
 | [`003_bucket_imagenes_canchas.sql`](sql/003_bucket_imagenes_canchas.sql) | Crea el bucket publico `canchas` de Storage (JPG, PNG o WEBP, hasta 2 MB) para las fotos de las canchas |
+| [`004_reservas_sin_superposiciones.sql`](sql/004_reservas_sin_superposiciones.sql) | Impide reservas activas/confirmadas superpuestas por cancha con una exclusion GiST y obliga a crear/cancelar mediante la API |
 
 Antes de ejecutar `001_lista_espera.sql` deben existir las tablas base `courts`, `profiles` y `reservations` del proyecto. `waiting_list.user_id` y `court_id` son UUID y referencian `profiles.id` y `courts.id`; `id` es un UUID generado por la base. La fecha es `date`, la hora es `time` con precision de minutos y `created_at` es `timestamptz`.
 
@@ -456,7 +457,7 @@ Sin anotados devuelve `{ "enviados": 0, "fallidos": [] }`. Un email ausente/inva
 
 El [diagrama de secuencia del aviso por mail](docs/secuencia-aviso-mail.md) muestra la integracion y el tratamiento de fallos. Para observar el correo MEM en una prueba, `Server` admite `new Server(0, { correo, registrarAviso })`: inyectar un `MailMem` y una funcion que reciba `{ enviados, fallidos }`. No hay un endpoint publico que exponga los mails.
 
-El frontend Vue todavia cancela directamente en Supabase. Para activar este aviso, la cancelacion debe pasar por la API del servidor; conectar el frontend es una tarea compartida opcional de la demo.
+El frontend Vue crea, consulta y cancela reservas mediante esta API con el token real de Supabase. Ante `409` con `code: "TURNO_OCUPADO"`, ofrece anotarse en espera para la cancha, fecha y hora elegidas. **Mis reservas > Mi lista de espera** permite consultar las propias y salirse. Un `409` por limite de reservas no ofrece la espera. El aviso no asigna el turno automaticamente: quien primero complete una nueva reserva se lo queda. Las inscripciones permanecen hasta que el usuario se sale.
 
 ## Pruebas
 
@@ -477,3 +478,32 @@ Levanta el servidor completo, igual que `index.js` (todas las rutas y middleware
 ## Pruebas de lista de espera, mails y reportes
 
 Desde `server/`, ejecutar `npm test`. Las suites `listaEspera.test.js`, `mails.test.js`, `reportes.test.js` y `daosReportesListaEspera.test.js` cubren altas, bajas, consulta propia, turno libre, duplicados, autorizacion, fallos de correo, fechas invalidas, descarga y lectura del Excel, calculos y paginacion. `integracionReservas.test.js` prueba el circuito completo por HTTP, los emails MEM correctos, fallos sin revertir la cancelacion, canchas compartidas, aislamiento entre servidores y el Excel actualizado. Usan MEM o bordes simulados de SMTP/PostgREST; no requieren credenciales ni modifican Supabase. Queda pendiente validar la entrega SMTP y la persistencia contra Supabase reales.
+
+
+## Concurrencia y activacion del circuito web
+
+Antes de habilitar esta version contra Supabase, ejecutar `sql/004_reservas_sin_superposiciones.sql` con permisos de propietario en SQL Editor. Requiere las tablas base y la extension `btree_gist`; no modifica ni elimina reservas existentes. Si hay datos superpuestos o duraciones invalidas, falla toda la transaccion: revisar y resolver esos datos antes de reintentar. Para localizar superposiciones existentes:
+
+```sql
+select a.id, b.id, a.court_id, a.reservation_date
+from public.reservations a join public.reservations b
+  on a.id < b.id and a.court_id = b.court_id
+  and a.reservation_date = b.reservation_date
+where a.status in ('active', 'confirmed') and b.status in ('active', 'confirmed')
+  and a.start_time < b.end_time and b.start_time < a.end_time;
+```
+
+La exclusion opera en la base incluso con varias instancias de la API: dos altas simultaneas para intervalos que se pisan no pueden confirmarse ambas. Los intervalos son semiabiertos: 18–19 y 19–20 son compatibles. Las canceladas no bloquean. El DAO convierte `23P01` a HTTP `409` con `code: "TURNO_OCUPADO"`; la validacion previa del servicio devuelve el mismo codigo. En MEM la comprobacion y escritura son sincronicas en un mismo DAO. `GET /api/reservas` incluye `courts` con los datos de la cancha o `null` si no existe.
+
+El script tambien revoca escrituras directas de `anon` y `authenticated` sobre `reservations`. Coordinar el despliegue de API y frontend: los clientes anteriores que escribian directo dejan de poder reservar/cancelar. La API usa `SUPABASE_KEY` de servidor (`service_role`); jamas exponerla en `VITE_*`. Se conserva la lectura con sus permisos/RLS existentes. El backend debe apuntar al mismo proyecto de Supabase que la web y recibir `/api` mediante el proxy documentado en `client/README.md`.
+
+Para correos reales configurar `MODO_MAIL=SMTP`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` y `MAIL_FROM`, y permitir salida al proveedor. Con `MEM` los avisos solo quedan en el array del adaptador y no llegan a una casilla. La cancelacion persiste antes del envio; una actualizacion condicional evita repetir el aviso ante dos cancelaciones simultaneas. No hay cola persistente ni reintentos automaticos si el proceso se interrumpe o falla SMTP; los fallos quedan registrados sin revertir la cancelacion.
+
+`npm test` incluye `reservasConcurrencia.test.js`: altas simultaneas, solapamiento parcial, confirmed, contiguos, traduccion de error PostgreSQL y dos usuarios por HTTP con espera, doble cancelacion, un solo mail MEM y nueva reserva. Prueba optativa con PostgreSQL real y descartable (requiere Python 3, Docker local y la imagen `postgres:17-alpine`):
+
+```bash
+# Desde server/. No conecta con Supabase ni usa credenciales.
+python3 scripts/test-concurrencia-postgres.py
+```
+
+Comprueba el SQL dos veces, permisos, duracion positiva y dos transacciones concurrentes. Elimina su propio contenedor al terminar.
