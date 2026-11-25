@@ -62,6 +62,16 @@
           </select>
         </div>
         <CourtWeather :court-id="String(court.id)" :fecha="selectedDate" :hora="selectedTime" />
+        <div v-if="turnoOcupado" class="border border-surface-border rounded-btn p-3 bg-surface-bg space-y-2" aria-label="Lista de espera del turno">
+          <p class="text-text-body text-text-main">Este turno está ocupado.</p>
+          <p v-if="enEspera" role="status" class="text-brand text-text-small">Ya estás en la lista de espera. Te avisaremos por email si se libera; el aviso no garantiza la reserva.</p>
+          <button v-else type="button" @click="anotarEspera" :disabled="anotando"
+            class="w-full bg-brand text-white font-bold px-3 py-2 rounded-btn disabled:opacity-50">
+            {{ anotando ? 'Anotando…' : 'Anotarme en lista de espera' }}
+          </button>
+          <p v-if="errorEspera" role="alert" class="text-status-error text-text-small">{{ errorEspera }}</p>
+          <router-link to="/reservas" class="block text-brand underline text-text-small">Ver mi lista de espera</router-link>
+        </div>
       </div>
     </div>
     
@@ -142,7 +152,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue' 
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReservationsStore } from '../stores/reservations'
 import { useCourtsStore } from '../stores/courts'
@@ -150,6 +160,7 @@ import { useAuthStore } from '../stores/auth'
 import { useAlertsStore } from '../stores/alerts.js'
 import RatingStars from './RatingStars.vue'
 import CourtWeather from './CourtWeather.vue'
+import { anotarse } from '../services/listaEsperaService.js'
 
 const props = defineProps({
   court: {
@@ -168,6 +179,33 @@ const isBooking = ref(false)
 const selectedDate = ref('')
 const selectedTime = ref('')
 const isSubmitting = ref(false)
+const turnoOcupado = ref(false)
+const enEspera = ref(false)
+const anotando = ref(false)
+const errorEspera = ref('')
+watch(() => [props.court.id, selectedDate.value, selectedTime.value], () => {
+  turnoOcupado.value = false
+  enEspera.value = false
+  errorEspera.value = ''
+}, { flush: 'sync' })
+
+async function anotarEspera() {
+  if (anotando.value || !authStore.user || !turnoOcupado.value) return
+  const turno = { court_id: props.court.id, reservation_date: selectedDate.value, start_time: selectedTime.value }
+  const sigueVigente = () => turno.court_id === props.court.id && turno.reservation_date === selectedDate.value && turno.start_time === selectedTime.value
+  anotando.value = true
+  errorEspera.value = ''
+  try {
+    await anotarse(turno)
+    if (sigueVigente()) enEspera.value = true
+    alertsStore.showAlert(`Te anotaste en espera para el ${turno.reservation_date} a las ${turno.start_time}.`, 'success')
+  } catch (e) {
+    if (sigueVigente()) {
+      if (e.status === 409 && e.message.includes('Ya estas')) enEspera.value = true
+      else errorEspera.value = e.message || 'No se pudo completar la inscripción.'
+    }
+  } finally { anotando.value = false }
+}
 
 // Estados para el modal de Review
 const showReviewModal = ref(false)
@@ -211,7 +249,9 @@ function startBooking() {
 }
 
 async function confirmBooking() {
-  if (!selectedDate.value || !selectedTime.value) return
+  if (!selectedDate.value || !selectedTime.value || isSubmitting.value) return
+  const fechaSolicitada = selectedDate.value
+  const horaSolicitada = selectedTime.value
 
   if (selectedDate.value < today.value) {
     alertsStore.showAlert('No podés reservar un turno en una fecha pasada.', 'error')
@@ -235,11 +275,11 @@ async function confirmBooking() {
       props.court.id,
       props.court.name,
       props.court.club,
-      selectedDate.value,
-      selectedTime.value
+      fechaSolicitada,
+      horaSolicitada
     )
 
-    alertsStore.showAlert(`¡Reserva confirmada con éxito para el día ${selectedDate.value} a las ${selectedTime.value} hs!`, 'success')
+    alertsStore.showAlert(`¡Reserva confirmada con éxito para el día ${fechaSolicitada} a las ${horaSolicitada} hs!`, 'success')
     
     isBooking.value = false
     selectedDate.value = ''
@@ -247,6 +287,9 @@ async function confirmBooking() {
 
     router.push('/reservas')
   } catch (err) {
+    if (err.code === 'TURNO_OCUPADO' && selectedDate.value === fechaSolicitada && selectedTime.value === horaSolicitada) {
+      turnoOcupado.value = true
+    }
     console.error('Error al crear reserva:', err)
     alertsStore.showAlert(err.message || 'No se pudo crear la reserva.', 'error')
   } finally {

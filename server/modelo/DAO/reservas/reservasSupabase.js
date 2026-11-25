@@ -27,6 +27,9 @@ class ModeloSupabase {
 
     guardarReserva = async reserva => {
         const { data, error } = await this.#tabla().insert(reserva).select().single()
+        if (error?.code === '23P01') {
+            throw Object.assign(new Error('El turno ya esta ocupado'), { status: 409, code: 'TURNO_OCUPADO' })
+        }
         if (error) throw new Error(error.message)
         return this.#formatear(data)
     }
@@ -35,6 +38,7 @@ class ModeloSupabase {
         const { data, error } = await this.#tabla()
             .update({ status: 'cancelled' })
             .eq('id', id)
+            .neq('status', 'cancelled')
             .select()
             .maybeSingle()
 

@@ -33,6 +33,8 @@
     </div>
 
     <div v-else>
+      <MyWaitingList />
+      <p v-if="reservationsStore.error" role="alert" class="mb-4 text-status-error">{{ reservationsStore.error }}</p>
       <div class="flex gap-4 mb-6 border-b border-surface-border">
         <button
           @click="activeTab = 'active'"
@@ -70,7 +72,7 @@
       </div>
 
       <div 
-        v-if="!reservationsStore.myReservations.length" 
+        v-if="!reservationsStore.myReservations.length && !reservationsStore.error"
         class="bg-surface-card border border-surface-border rounded-card p-12 text-center shadow-flat"
       >
         <span class="text-5xl block mb-4">📅</span>
@@ -169,6 +171,7 @@ import { useReservationsStore } from '../stores/reservations'
 import { useAuthStore } from '../stores/auth'
 import { useAlertsStore } from '../stores/alerts'
 import ReservationCard from '../components/ReservationCard.vue'
+import MyWaitingList from '../components/MyWaitingList.vue'
 
 const reservationsStore = useReservationsStore()
 const authStore = useAuthStore()
