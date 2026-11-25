@@ -49,6 +49,7 @@ Los cambios a las tablas estan en `sql/`, numerados. Se ejecutan en orden desde 
 | --- | --- |
 | [`001_lista_espera.sql`](sql/001_lista_espera.sql) | Crea `waiting_list`, sus claves foraneas, restriccion de inscripcion unica por usuario/turno e indice de busqueda por turno |
 | [`002_canchas_techada_ubicacion.sql`](sql/002_canchas_techada_ubicacion.sql) | Agrega a `courts` los campos `covered` (techada), `latitude` y `longitude` |
+| [`003_bucket_imagenes_canchas.sql`](sql/003_bucket_imagenes_canchas.sql) | Crea el bucket publico `canchas` de Storage (JPG, PNG o WEBP, hasta 2 MB) para las fotos de las canchas |
 
 Antes de ejecutar `001_lista_espera.sql` deben existir las tablas base `courts`, `profiles` y `reservations` del proyecto. `waiting_list.user_id` y `court_id` son UUID y referencian `profiles.id` y `courts.id`; `id` es un UUID generado por la base. La fecha es `date`, la hora es `time` con precision de minutos y `created_at` es `timestamptz`.
 
@@ -92,7 +93,7 @@ Los rechazos de autenticacion y rol pueden responder solo `{ "error": "mensaje" 
 
 | Metodo | Ruta | Auth | Descripcion | Respuestas |
 | --- | --- | --- | --- | --- |
-| `GET` | `/api/canchas` | No | Lista las canchas. Filtros opcionales: `?techada=true\|false`, `?deporte=Pádel\|Tenis` | `200` lista · `400` filtro invalido |
+| `GET` | `/api/canchas` | No | Lista las canchas. Filtros opcionales: `?techada=true\|false`, `?deporte=Pádel|Tenis|Fútbol`\|Tenis` | `200` lista · `400` filtro invalido |
 | `GET` | `/api/canchas/:id` | No | Devuelve una cancha | `200` · `404` |
 | `POST` | `/api/canchas` | Admin | Crea una cancha | `201` cancha creada · `400` · `401` · `403` |
 | `PUT` | `/api/canchas/:id` | Admin | Modifica los campos enviados | `200` · `400` · `401` · `403` · `404` |
@@ -103,7 +104,7 @@ Campos de una cancha:
 | Campo | Tipo | Alta | Regla |
 | --- | --- | --- | --- |
 | `name` | texto | obligatorio | 3 a 50 caracteres |
-| `sport` | texto | obligatorio | `Pádel` o `Tenis` |
+| `sport` | texto | obligatorio | `Pádel` o ``?deporte=Pádel|Tenis|Fútbol` |
 | `club` | texto | obligatorio | 2 a 50 caracteres |
 | `location` | texto | obligatorio | 2 a 80 caracteres |
 | `price` | numero | obligatorio | tarifa por hora, mayor a 0 |
@@ -282,6 +283,43 @@ Errores:
 | `502` | Open-Meteo no responde, responde con error o no tiene dato para esa hora |
 
 El diagrama de secuencia esta en [`docs/secuencia-clima.md`](docs/secuencia-clima.md).
+
+### Imagen de una cancha (`/api/canchas/:id/imagen`)
+
+Sube la foto de una cancha y guarda su URL en `image_url`. Solo administradores.
+
+| Metodo | Ruta | Auth | Recibe | Devuelve |
+| --- | --- | --- | --- | --- |
+| `POST` | `/api/canchas/:id/imagen` | Admin | `multipart/form-data` con el archivo en el campo `imagen` | `201` la cancha con `image_url` actualizada |
+
+- Formatos aceptados: JPG, PNG o WEBP. Se valida el **contenido real** del archivo (sus primeros bytes), no solo la extension.
+- Tamano maximo: 2 MB.
+- Modo `SUPABASE`: el archivo se sube al bucket `canchas` de Supabase Storage (`sql/003_bucket_imagenes_canchas.sql`) y `image_url` es su URL publica.
+- Modo `MEM`: el archivo queda en memoria y `image_url` es de ejemplo (`memoria://canchas/...`).
+- `image_url` no se puede cambiar con `PUT /api/canchas/:id`; solo con este endpoint.
+
+Ejemplo con curl:
+
+```bash
+curl -X POST http://localhost:8080/api/canchas/2/imagen -H "Authorization: Bearer token-admin" -F "imagen=@foto.png"
+```
+
+Respuesta `201`:
+
+```json
+{ "id": "2", "name": "Cancha Tenis 1", "sport": "Tenis", "price": 15000, "image_url": "memoria://canchas/cancha-2-1795151433217.png", "...": "resto de los campos de la cancha" }
+```
+
+| Error | Cuando |
+| --- | --- |
+| `400` | No vino el archivo, o vino en un campo que no se llama `imagen` |
+| `401` / `403` | Sin token, o el usuario no es admin |
+| `404` | La cancha no existe |
+| `413` | La imagen supera los 2 MB |
+| `415` | El archivo no es JPG, PNG o WEBP (aunque tenga esa extension) |
+| `500` | Fallo la subida a Supabase Storage |
+
+El diagrama de secuencia esta en [`docs/secuencia-subida-imagen.md`](docs/secuencia-subida-imagen.md) y el diagrama de clases general en [`docs/diagrama-clases.md`](docs/diagrama-clases.md).
 
 ### Lista de espera (`/api/lista-espera`) - ABM parcial
 

@@ -5,7 +5,7 @@ import { ErrorHttp } from '../middlewares/errores.js'
 // Reglas de validacion de una cancha (campos de la tabla "courts")
 const campos = {
     name: Joi.string().trim().min(3).max(50),
-    sport: Joi.string().valid('Pádel', 'Tenis'),
+    sport: Joi.string().valid('Pádel', 'Tenis', 'Fútbol'),     // los mismos que ofrece el front
     club: Joi.string().trim().min(2).max(50),
     location: Joi.string().trim().min(2).max(80),
     price: Joi.number().positive(),                 // tarifa por hora
